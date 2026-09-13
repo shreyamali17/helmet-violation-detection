@@ -1,10 +1,18 @@
 """
 Central configuration for the helmet violation detection pipeline.
 
+Paths resolve relative to the project root, so this works on the Jetson,
+in Colab, or anywhere else the repo is cloned.
 """
 
-MODEL_PATH = "/home/emertxe/Desktop/Emertxe/Shreya/helmet-detection-violation/models/best.pt"
-VIDEO_PATH = "/home/emertxe/Desktop/Emertxe/Shreya/helmet-detection-violation/sample_videos/20211125082353_0060.mp4"
+import os
+
+_HERE = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(_HERE)
+
+MODEL_PATH = os.path.join(PROJECT_ROOT, "models", "best.pt")
+VIDEO_PATH = os.path.join(PROJECT_ROOT, "sample_videos", "sample.mp4")
+OUTPUT_DIR = os.path.join(PROJECT_ROOT, "output")
 
 CLASS_NAMES = {
     0: "motorcycle",
@@ -23,5 +31,3 @@ PLATE_MOTO_MAX_COST = 100
 
 MIN_OBSERVATIONS = 3
 MIN_CONFIDENCE = 0.7
-
-OUTPUT_DIR = "/home/emertxe/Desktop/Emertxe/Shreya/helmet-detection-violation/output"
