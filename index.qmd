@@ -6,33 +6,54 @@ subtitle: "A hands-on helmet detection workshop"
 ![ Helmet Violation, detected and flagged by the pipeline](images/hero.png)
 
 ## Introduction
+This workshop builds an automated system for detecting helmet violations
+from dashcam video, and deploys it to run on an NVIDIA Jetson Orin Nano,
+a board small enough to mount in a vehicle.
 
-##Problem Statement
+Two-wheelers dominate road traffic across much of Asia, and riding without
+a helmet is both common and consistently fatal in crashes. Helmet laws
+exist almost everywhere. Enforcing them is the problem: it depends on an
+officer being present, or on someone reviewing footage afterwards. Neither
+covers a road network.
+
+## Problem Statement
+
+Given continuous dashcam video from a moving vehicle, detect motorcycles,
+riders, and helmets; determine which rider is on which motorcycle; and flag
+riders without helmets with a saved frame as evidence for each violation.
+
+The system has to run on the vehicle rather than in the cloud, for three
+reasons:
+
+**Bandwidth** : Streaming continuous video over cellular is expensive and
+fails exactly where coverage is worst.
+
+**Latency** : A round trip to a server takes longer than the event itself.
+
+**Privacy** : Road footage captures uninvolved people. Processing on-device
+means only confirmed violations leave the vehicle.
+
+That constraint defines the engineering problem. A model that runs
+comfortably on a desktop GPU has to fit onto hardware with a fraction of
+the compute and a fixed power budget, while still keeping up with a live
+video feed.
 
 ## What you'll build
 
-A system that watches dashcam footage and flags riders without helmets — 
-detecting motorcycles, riders, and helmets frame by frame, tracking them 
-across time, and deciding on a violation only when the evidence holds up.
+A pipeline that takes dashcam video and returns confirmed helmet violations. 
 
-Then we make it run on a device small enough to sit in a vehicle.
+It runs in stages. A detection model finds motorcycles, riders, helmets, and
+license plates in each frame. A tracker assigns stable identities so the same
+rider can be followed across frames. An association step works out which rider
+belongs to which motorcycle. Finally, a temporal decision layer collects
+observations over time and only calls a violation once the evidence is
+consistent enough to hold up.
 
-## Before you start
+Then we make it fast enough to run on a Jetson Orin Nano, which is where the
+interesting trade-offs start.
 
-You need a Google account and a browser. Nothing to install.
+## Demo
 
-Every hands-on page has a badge at the top that opens that section in 
-Google Colab, where the code runs on Google's machines rather than yours.
+Before building anything, let's have a look at how the finished system would look like.
 
-## How the pages work
-
-Some pages you run, some you watch:
-
-- **Run along** — Setup and the four Walkthrough sections. Open the Colab 
-  link and follow.
-- **Watch** — Edge Deployment. These need an NVIDIA Jetson board, so they're 
-  demonstrated rather than followed.
-
-## Start here
-
-[Setup →](setup.qmd)
+{{< video videos/demo.mp4 >}}

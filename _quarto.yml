@@ -7,26 +7,24 @@ website:
     left:
       - href: index.qmd
         text: Home
-      - href: setup.qmd
-        text: Setup
-      - text: Walkthrough
+      - text: Pipeline Stages
         menu:
-          - href: walkthrough/detection.qmd
-            text: "1 · Detection"
-          - href: walkthrough/association.qmd
-            text: "2 · Association"
-          - href: walkthrough/temporal.qmd
-            text: "3 · Violation Logic"
-          - href: walkthrough/pipeline.qmd
-            text: "4 · Full Pipeline"
-      - text: Edge Deployment
-        menu:
-          - href: edge/optimization.qmd
-            text: Optimization
-          - href: edge/jetson.qmd
-            text: Jetson
-      - href: reference.qmd
-        text: Reference
+          - href: notebooks/config.ipynb
+            text: Configuration
+          - href: notebooks/detection.ipynb
+            text: Detection
+          - href: notebooks/geometry.ipynb
+            text: Geometry Helpers
+          - href: notebooks/association.ipynb
+            text: Association
+          - href: notebooks/rm_instance.ipynb
+            text: Tracking Instances
+          - href: notebooks/temporal.ipynb
+            text: Violation Logic
+          - href: notebooks/visualization.ipynb
+            text: Visualization
+      - href: notebooks/fullpipeline.ipynb
+        text: Full Pipeline
     right:
       - icon: github
         href: https://github.com/shreyamali17/helmet-violation-detection
