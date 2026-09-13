@@ -2,12 +2,34 @@ project:
   type: website
 
 website:
-  title: "helmet-violation-detection"
+  title: "Helmet Violation Detection"
   navbar:
     left:
       - href: index.qmd
         text: Home
-      - about.qmd
+      - href: setup.qmd
+        text: Setup
+      - text: Walkthrough
+        menu:
+          - href: walkthrough/detection.qmd
+            text: "1 · Detection"
+          - href: walkthrough/association.qmd
+            text: "2 · Association"
+          - href: walkthrough/temporal.qmd
+            text: "3 · Violation Logic"
+          - href: walkthrough/pipeline.qmd
+            text: "4 · Full Pipeline"
+      - text: Edge Deployment
+        menu:
+          - href: edge/optimization.qmd
+            text: Optimization
+          - href: edge/jetson.qmd
+            text: Jetson
+      - href: reference.qmd
+        text: Reference
+    right:
+      - icon: github
+        href: https://github.com/shreyamali17/helmet-violation-detection
 
 format:
   html:
@@ -17,5 +39,5 @@ format:
     css: styles.css
     toc: true
 
-
-
+execute:
+  freeze: auto

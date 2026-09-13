@@ -1,7 +1,38 @@
 ---
-title: "helmet-violation-detection"
+title: "Deploying Vision AI at the Edge"
+subtitle: "A hands-on helmet detection workshop"
 ---
 
-This is a Quarto website.
+![ Helmet Violation, detected and flagged by the pipeline](images/hero.png)
 
-To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
+## Introduction
+
+##Problem Statement
+
+## What you'll build
+
+A system that watches dashcam footage and flags riders without helmets — 
+detecting motorcycles, riders, and helmets frame by frame, tracking them 
+across time, and deciding on a violation only when the evidence holds up.
+
+Then we make it run on a device small enough to sit in a vehicle.
+
+## Before you start
+
+You need a Google account and a browser. Nothing to install.
+
+Every hands-on page has a badge at the top that opens that section in 
+Google Colab, where the code runs on Google's machines rather than yours.
+
+## How the pages work
+
+Some pages you run, some you watch:
+
+- **Run along** — Setup and the four Walkthrough sections. Open the Colab 
+  link and follow.
+- **Watch** — Edge Deployment. These need an NVIDIA Jetson board, so they're 
+  demonstrated rather than followed.
+
+## Start here
+
+[Setup →](setup.qmd)
