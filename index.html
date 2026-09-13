@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>helmet-violation-detection</title>
+<title>Deploying Vision AI at the Edge – Helmet Violation Detection</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -46,6 +46,8 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-445b8638c3d06994fee0907d791121c4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-contrib/videojs/video.min.js"></script>
+<link href="site_libs/quarto-contrib/videojs/video-js.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -86,7 +88,7 @@ ul.task-list li input[type="checkbox"] {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">helmet-violation-detection</span>
+    <span class="navbar-title">Helmet Violation Detection</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -99,9 +101,51 @@ ul.task-list li input[type="checkbox"] {
     <a class="nav-link active" href="./index.html" aria-current="page"> 
 <span class="menu-text">Home</span></a>
   </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-pipeline-stages" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Pipeline Stages</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-pipeline-stages">    
+        <li>
+    <a class="dropdown-item" href="./notebooks/config.html">
+ <span class="dropdown-text">Configuration</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./notebooks/detection.html">
+ <span class="dropdown-text">Detection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./notebooks/geometry.html">
+ <span class="dropdown-text">Geometry Helpers</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./notebooks/association.html">
+ <span class="dropdown-text">Association</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./notebooks/rm_instance.html">
+ <span class="dropdown-text">Tracking Instances</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./notebooks/temporal.html">
+ <span class="dropdown-text">Violation Logic</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./notebooks/visualization.html">
+ <span class="dropdown-text">Visualization</span></a>
+  </li>  
+    </ul>
+  </li>
   <li class="nav-item">
-    <a class="nav-link" href="./about.html"> 
-<span class="menu-text">About</span></a>
+    <a class="nav-link" href="./notebooks/fullpipeline.html"> 
+<span class="menu-text">Full Pipeline</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/shreyamali17/helmet-violation-detection"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -114,15 +158,25 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#problem-statement" id="toc-problem-statement" class="nav-link" data-scroll-target="#problem-statement">Problem Statement</a></li>
+  <li><a href="#what-youll-build" id="toc-what-youll-build" class="nav-link" data-scroll-target="#what-youll-build">What you’ll build</a></li>
+  <li><a href="#demo" id="toc-demo" class="nav-link" data-scroll-target="#demo">Demo</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">helmet-violation-detection</h1>
+<h1 class="title">Deploying Vision AI at the Edge</h1>
+<p class="subtitle lead">A hands-on helmet detection workshop</p>
 </div>
 
 
@@ -139,10 +193,39 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>This is a Quarto website.</p>
-<p>To learn more about Quarto websites visit <a href="https://quarto.org/docs/websites" class="uri">https://quarto.org/docs/websites</a>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/hero.png" class="img-fluid figure-img"></p>
+<figcaption>Helmet Violation, detected and flagged by the pipeline</figcaption>
+</figure>
+</div>
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>This workshop builds an automated system for detecting helmet violations from dashcam video, and deploys it to run on an NVIDIA Jetson Orin Nano, a board small enough to mount in a vehicle.</p>
+<p>Two-wheelers dominate road traffic across much of Asia, and riding without a helmet is both common and consistently fatal in crashes. Helmet laws exist almost everywhere. Enforcing them is the problem: it depends on an officer being present, or on someone reviewing footage afterwards. Neither covers a road network.</p>
+</section>
+<section id="problem-statement" class="level2">
+<h2 class="anchored" data-anchor-id="problem-statement">Problem Statement</h2>
+<p>Given continuous dashcam video from a moving vehicle, detect motorcycles, riders, and helmets; determine which rider is on which motorcycle; and flag riders without helmets with a saved frame as evidence for each violation.</p>
+<p>The system has to run on the vehicle rather than in the cloud, for three reasons:</p>
+<p><strong>Bandwidth</strong> : Streaming continuous video over cellular is expensive and fails exactly where coverage is worst.</p>
+<p><strong>Latency</strong> : A round trip to a server takes longer than the event itself.</p>
+<p><strong>Privacy</strong> : Road footage captures uninvolved people. Processing on-device means only confirmed violations leave the vehicle.</p>
+<p>That constraint defines the engineering problem. A model that runs comfortably on a desktop GPU has to fit onto hardware with a fraction of the compute and a fixed power budget, while still keeping up with a live video feed.</p>
+</section>
+<section id="what-youll-build" class="level2">
+<h2 class="anchored" data-anchor-id="what-youll-build">What you’ll build</h2>
+<p>A pipeline that takes dashcam video and returns confirmed helmet violations.</p>
+<p>It runs in stages. A detection model finds motorcycles, riders, helmets, and license plates in each frame. A tracker assigns stable identities so the same rider can be followed across frames. An association step works out which rider belongs to which motorcycle. Finally, a temporal decision layer collects observations over time and only calls a violation once the evidence is consistent enough to hold up.</p>
+<p>Then we make it fast enough to run on a Jetson Orin Nano, which is where the interesting trade-offs start.</p>
+</section>
+<section id="demo" class="level2">
+<h2 class="anchored" data-anchor-id="demo">Demo</h2>
+<p>Before building anything, let’s have a look at how the finished system would look like.</p>
+<div class="quarto-video"><video id="video_shortcode_videojs_video1" class="video-js vjs-default-skin vjs-big-play-centered vjs-fluid" controls="" preload="auto" data-setup="{}" title=""><source src="videos/demo.mp4"></video></div>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -546,6 +629,7 @@ ul.task-list li input[type="checkbox"] {
   });
   </script>
 </div> <!-- /content -->
+<script>videojs(video_shortcode_videojs_video1);</script>
 
 
 

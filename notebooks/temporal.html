@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>temporal.py – Helmet Violation Detection</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-445b8638c3d06994fee0907d791121c4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Helmet Violation Detection</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-pipeline-stages" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Pipeline Stages</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-pipeline-stages">    
+        <li>
+    <a class="dropdown-item" href="../notebooks/config.html">
+ <span class="dropdown-text">Configuration</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/detection.html">
+ <span class="dropdown-text">Detection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/geometry.html">
+ <span class="dropdown-text">Geometry Helpers</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/association.html">
+ <span class="dropdown-text">Association</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/rm_instance.html">
+ <span class="dropdown-text">Tracking Instances</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/temporal.html">
+ <span class="dropdown-text">Violation Logic</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/visualization.html">
+ <span class="dropdown-text">Visualization</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="../notebooks/fullpipeline.html"> 
+<span class="menu-text">Full Pipeline</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/shreyamali17/helmet-violation-detection"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#setup" id="toc-setup" class="nav-link active" data-scroll-target="#setup"><strong>Setup</strong></a></li>
+  <li><a href="#what-arrives-here" id="toc-what-arrives-here" class="nav-link" data-scroll-target="#what-arrives-here"><strong>What arrives here</strong></a></li>
+  <li><a href="#smoothing" id="toc-smoothing" class="nav-link" data-scroll-target="#smoothing"><strong>Smoothing</strong></a>
+  <ul class="collapse">
+  <li><a href="#returning-none-is-a-real-answer" id="toc-returning-none-is-a-real-answer" class="nav-link" data-scroll-target="#returning-none-is-a-real-answer"><strong>Returning <code>None</code> is a real answer</strong></a></li>
+  <li><a href="#which-confidence-is-being-averaged" id="toc-which-confidence-is-being-averaged" class="nav-link" data-scroll-target="#which-confidence-is-being-averaged"><strong>Which confidence is being averaged</strong></a></li>
+  </ul></li>
+  <li><a href="#deciding" id="toc-deciding" class="nav-link" data-scroll-target="#deciding"><strong>Deciding</strong></a>
+  <ul class="collapse">
+  <li><a href="#three-valued-logic" id="toc-three-valued-logic" class="nav-link" data-scroll-target="#three-valued-logic"><strong>Three-valued logic</strong></a></li>
+  <li><a href="#why-the-split-into-two-functions" id="toc-why-the-split-into-two-functions" class="nav-link" data-scroll-target="#why-the-split-into-two-functions"><strong>Why the split into two functions</strong></a></li>
+  </ul></li>
+  <li><a href="#decision-table" id="toc-decision-table" class="nav-link" data-scroll-target="#decision-table"><strong>Decision Table</strong></a></li>
+  <li><a href="#on-real-video" id="toc-on-real-video" class="nav-link" data-scroll-target="#on-real-video"><strong>On real video</strong></a></li>
+  <li><a href="#try-it" id="toc-try-it" class="nav-link" data-scroll-target="#try-it"><strong>Try It</strong></a></li>
+  <li><a href="#next" id="toc-next" class="nav-link" data-scroll-target="#next"><strong>Next</strong></a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><strong>temporal.py</strong></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>This is where the system decides.</p>
+<p>Everything before this produced observations. Detection found heads, association matched them to riders, the manager collected them. Nobody has yet said “this rider was not wearing a helmet.”</p>
+<p>The reason that’s a separate step is that a single frame can’t be trusted. A rider passes behind a pole, the image blurs on a bump, the sun catches a dark helmet at the wrong angle. Any one frame might be wrong. Two small functions. One summarises a rider’s observations; the other decides whether that summary is strong enough to act on.</p>
+<section id="setup" class="level2">
+<h2 class="anchored" data-anchor-id="setup"><strong>Setup</strong></h2>
+<div id="cell-3" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}}" data-outputid="b5553e2c-19ff-47cb-b25b-080ad61b758e" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="op">!</span>git clone <span class="op">-</span>q https:<span class="op">//</span>github.com<span class="op">/</span>shreyamali17<span class="op">/</span>helmet<span class="op">-</span>violation<span class="op">-</span>detection.git</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>cd helmet<span class="op">-</span>violation<span class="op">-</span>detection<span class="op">/</span>project<span class="op">/</span>pipeline</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="op">!</span>pip install <span class="op">-</span>q ultralytics scipy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<div class="ansi-escaped-output">
+<pre>/content/helmet-violation-detection/project/pipeline
+
+     <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">46.6/46.6 kB</span> <span class="ansi-red-fg">3.1 MB/s</span> eta <span class="ansi-cyan-fg">0:00:00</span>
+
+   <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">1.4/1.4 MB</span> <span class="ansi-red-fg">31.7 MB/s</span> eta <span class="ansi-cyan-fg">0:00:00</span>
+
+   <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">75.8/75.8 kB</span> <span class="ansi-red-fg">4.9 MB/s</span> eta <span class="ansi-cyan-fg">0:00:00</span>
+
+</pre>
+</div>
+</div>
+</div>
+</section>
+<section id="what-arrives-here" class="level2">
+<h2 class="anchored" data-anchor-id="what-arrives-here"><strong>What arrives here</strong></h2>
+<p>The <code>observations</code> dictionary accumulates during the pipeline loop. Each rider maps to a list of <code>(status, model_confidence)</code> tuples : one entry per frame where that rider was matched to a head detection.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>observations[<span class="dv">7</span>] <span class="op">=</span> [</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"no_helmet"</span>, <span class="fl">0.91</span>),</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"no_helmet"</span>, <span class="fl">0.88</span>),</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"helmet"</span>,    <span class="fl">0.62</span>),   <span class="co"># one frame disagreed</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"no_helmet"</span>, <span class="fl">0.93</span>),</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Note what’s in the second slot: the <strong>model’s</strong> confidence in that individual detection. This becomes important shortly.</p>
+</section>
+<section id="smoothing" class="level2">
+<h2 class="anchored" data-anchor-id="smoothing"><strong>Smoothing</strong></h2>
+<p>Take the majority status, and report a confidence for it.</p>
+<div id="cell-6" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> collections <span class="im">import</span> Counter</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> config <span class="im">import</span> MIN_OBSERVATIONS, MIN_CONFIDENCE</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> smooth_helmet_status(observations, rider_id, min_observations<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    min_observations <span class="op">=</span> min_observations <span class="cf">if</span> min_observations <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span> <span class="cf">else</span> MIN_OBSERVATIONS</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    votes <span class="op">=</span> observations.get(rider_id, [])</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># not enough evidence to say anything at all</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(votes) <span class="op">&lt;</span> min_observations:</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">None</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># majority vote on the status</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    statuses <span class="op">=</span> [v[<span class="dv">0</span>] <span class="cf">for</span> v <span class="kw">in</span> votes]</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    status, _ <span class="op">=</span> Counter(statuses).most_common(<span class="dv">1</span>)[<span class="dv">0</span>]</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># average the MODEL's confidence, over agreeing frames only</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    agreeing_confs <span class="op">=</span> [v[<span class="dv">1</span>] <span class="cf">for</span> v <span class="kw">in</span> votes <span class="cf">if</span> v[<span class="dv">0</span>] <span class="op">==</span> status <span class="kw">and</span> v[<span class="dv">1</span>] <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>]</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    avg_confidence <span class="op">=</span> <span class="bu">sum</span>(agreeing_confs) <span class="op">/</span> <span class="bu">len</span>(agreeing_confs) <span class="cf">if</span> agreeing_confs <span class="cf">else</span> <span class="va">None</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> status, avg_confidence</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="returning-none-is-a-real-answer" class="level3">
+<h3 class="anchored" data-anchor-id="returning-none-is-a-real-answer"><strong>Returning <code>None</code> is a real answer</strong></h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">len</span>(votes) <span class="op">&lt;</span> min_observations:</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="va">None</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>There are three possible outcomes here, not two: helmet, no helmet, and <em>not enough evidence</em>. That third one is a feature.</p>
+<p>A rider glimpsed twice at the far edge of the frame produces <code>None</code>. Not a guess, not a default to “compliant” an explicit refusal to decide. Most of the riders in any given video end up here, and that’s the system working as intended.</p>
+</section>
+<section id="which-confidence-is-being-averaged" class="level3">
+<h3 class="anchored" data-anchor-id="which-confidence-is-being-averaged"><strong>Which confidence is being averaged</strong></h3>
+<p>This line deserves attention, because it’s easy to misread:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>agreeing_confs <span class="op">=</span> [v[<span class="dv">1</span>] <span class="cf">for</span> v <span class="kw">in</span> votes <span class="cf">if</span> v[<span class="dv">0</span>] <span class="op">==</span> status <span class="kw">and</span> v[<span class="dv">1</span>] <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>It averages <strong>YOLO’s own confidence scores</strong>, taken only over the frames that agree with the majority. It is <em>not</em> the fraction of frames that agreed.</p>
+<p>Those are different numbers and they answer different questions:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th></th>
+<th>Question it answers</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Vote agreement</td>
+<td>How consistent was the rider across frames?</td>
+</tr>
+<tr class="even">
+<td>Average model confidence</td>
+<td>How sure was the detector when it agreed?</td>
+</tr>
+</tbody>
+</table>
+<p>The code uses the second. A consequence follows from that, and it’s worth seeing rather than describing.</p>
+<div id="cell-9" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}}" data-outputid="6101a828-7101-4cb0-a720-6c5c1813c01d" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># two riders, both majority no_helmet, both with 3 observations</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>unanimous <span class="op">=</span> [(<span class="st">"no_helmet"</span>, <span class="fl">0.90</span>), (<span class="st">"no_helmet"</span>, <span class="fl">0.88</span>), (<span class="st">"no_helmet"</span>, <span class="fl">0.92</span>)]</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>split     <span class="op">=</span> [(<span class="st">"no_helmet"</span>, <span class="fl">0.90</span>), (<span class="st">"helmet"</span>, <span class="fl">0.85</span>), (<span class="st">"no_helmet"</span>, <span class="fl">0.92</span>)]</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>obs <span class="op">=</span> {<span class="dv">1</span>: unanimous, <span class="dv">2</span>: split}</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> rid, votes <span class="kw">in</span> obs.items():</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    statuses <span class="op">=</span> [v[<span class="dv">0</span>] <span class="cf">for</span> v <span class="kw">in</span> votes]</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    agreement <span class="op">=</span> statuses.count(Counter(statuses).most_common(<span class="dv">1</span>)[<span class="dv">0</span>][<span class="dv">0</span>]) <span class="op">/</span> <span class="bu">len</span>(votes)</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    result <span class="op">=</span> smooth_helmet_status(obs, rid)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"rider </span><span class="sc">{</span>rid<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>statuses<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"   vote agreement:  </span><span class="sc">{</span>agreement<span class="sc">:.0%}</span><span class="ss">"</span>)</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"   smoothed result: </span><span class="sc">{</span>result[<span class="dv">0</span>]<span class="sc">}</span><span class="ss">, confidence </span><span class="sc">{</span>result[<span class="dv">1</span>]<span class="sc">:.2f}</span><span class="ss">"</span>)</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>rider 1: ['no_helmet', 'no_helmet', 'no_helmet']
+   vote agreement:  100%
+   smoothed result: no_helmet, confidence 0.90
+
+rider 2: ['no_helmet', 'helmet', 'no_helmet']
+   vote agreement:  67%
+   smoothed result: no_helmet, confidence 0.91
+</code></pre>
+</div>
+</div>
+<p>Rider 1 agreed with itself every frame. Rider 2 disagreed a third of the time. Both come out with roughly the same reported confidence, because the frames that disagreed are simply excluded from the average.</p>
+<p>The dissent is invisible in the output. Whether that’s the right behaviour depends on what you want the number to mean but it’s worth knowing that the reported confidence says nothing about consistency.</p>
+</section>
+</section>
+<section id="deciding" class="level2">
+<h2 class="anchored" data-anchor-id="deciding"><strong>Deciding</strong></h2>
+<p>The second function applies the threshold and returns a verdict.</p>
+<div id="cell-12" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> decide_violation(smoothed_result, min_confidence<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    min_confidence <span class="op">=</span> min_confidence <span class="cf">if</span> min_confidence <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span> <span class="cf">else</span> MIN_CONFIDENCE</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> smoothed_result <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">None</span>                      <span class="co"># not enough observations</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    status, confidence <span class="op">=</span> smoothed_result</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> confidence <span class="kw">is</span> <span class="va">None</span> <span class="kw">or</span> confidence <span class="op">&lt;</span> min_confidence:</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">None</span>                      <span class="co"># not confident enough</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> status <span class="op">==</span> <span class="st">"no_helmet"</span>         <span class="co"># True or False</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="three-valued-logic" class="level3">
+<h3 class="anchored" data-anchor-id="three-valued-logic"><strong>Three-valued logic</strong></h3>
+<p>This function returns <code>True</code>, <code>False</code>, or <code>None</code>, and all three mean something distinct:</p>
+<ul>
+<li><strong><code>True</code></strong> : confirmed violation</li>
+<li><strong><code>False</code></strong> : confirmed wearing a helmet</li>
+<li><strong><code>None</code></strong> : the system declines to say</li>
+</ul>
+<p>That’s why the code elsewhere is careful to write <code>if inst.is_violation is True</code> rather than <code>if inst.is_violation</code>. In Python, <code>None</code> and <code>False</code> are both falsy, so a plain truth test collapses “no violation” and “don’t know” into the same branch.</p>
+<p>For a system that might generate a traffic ticket, that distinction is the whole point.</p>
+</section>
+<section id="why-the-split-into-two-functions" class="level3">
+<h3 class="anchored" data-anchor-id="why-the-split-into-two-functions"><strong>Why the split into two functions</strong></h3>
+<p><code>smooth_helmet_status</code> answers “what does the evidence say?” and <code>decide_violation</code> answers “is that enough?”</p>
+<p>Keeping them separate means you can inspect the evidence without committing to a verdict useful for debugging, and for showing a human operator <em>why</em> a violation was flagged rather than just that it was. It also means the two failure modes stay distinguishable. Too few observations and insufficient confidence both return <code>None</code> from <code>decide_violation</code>, but <code>smooth_helmet_status</code> tells you which one happened.</p>
+</section>
+</section>
+<section id="decision-table" class="level2">
+<h2 class="anchored" data-anchor-id="decision-table"><strong>Decision Table</strong></h2>
+<p>Running a range of cases through both functions.</p>
+<div id="cell-16" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}}" data-outputid="66260629-a5e1-48ec-eafe-69bd7e8dd63b" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>cases <span class="op">=</span> {</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"seen once"</span>:            [(<span class="st">"no_helmet"</span>, <span class="fl">0.95</span>)],</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"seen twice"</span>:           [(<span class="st">"no_helmet"</span>, <span class="fl">0.95</span>), (<span class="st">"no_helmet"</span>, <span class="fl">0.93</span>)],</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"3x confident"</span>:         [(<span class="st">"no_helmet"</span>, <span class="fl">0.91</span>), (<span class="st">"no_helmet"</span>, <span class="fl">0.88</span>), (<span class="st">"no_helmet"</span>, <span class="fl">0.94</span>)],</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"3x low confidence"</span>:    [(<span class="st">"no_helmet"</span>, <span class="fl">0.55</span>), (<span class="st">"no_helmet"</span>, <span class="fl">0.61</span>), (<span class="st">"no_helmet"</span>, <span class="fl">0.58</span>)],</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"helmet, confident"</span>:    [(<span class="st">"helmet"</span>, <span class="fl">0.89</span>), (<span class="st">"helmet"</span>, <span class="fl">0.92</span>), (<span class="st">"helmet"</span>, <span class="fl">0.87</span>)],</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"split, high conf"</span>:     [(<span class="st">"no_helmet"</span>, <span class="fl">0.93</span>), (<span class="st">"helmet"</span>, <span class="fl">0.80</span>), (<span class="st">"no_helmet"</span>, <span class="fl">0.91</span>)],</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"borderline 0.70"</span>:      [(<span class="st">"no_helmet"</span>, <span class="fl">0.70</span>), (<span class="st">"no_helmet"</span>, <span class="fl">0.70</span>), (<span class="st">"no_helmet"</span>, <span class="fl">0.70</span>)],</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="st">'case'</span><span class="sc">:&lt;22}{</span><span class="st">'smoothed'</span><span class="sc">:&lt;28}{</span><span class="st">'violation'</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"-"</span> <span class="op">*</span> <span class="dv">66</span>)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> name, votes <span class="kw">in</span> cases.items():</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    o <span class="op">=</span> {<span class="dv">1</span>: votes}</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> smooth_helmet_status(o, <span class="dv">1</span>)</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    v <span class="op">=</span> decide_violation(s)</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    s_str <span class="op">=</span> <span class="st">"None (too few obs)"</span> <span class="cf">if</span> s <span class="kw">is</span> <span class="va">None</span> <span class="cf">else</span> <span class="ss">f"</span><span class="sc">{</span>s[<span class="dv">0</span>]<span class="sc">}</span><span class="ss">, conf </span><span class="sc">{</span>s[<span class="dv">1</span>]<span class="sc">:.2f}</span><span class="ss">"</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    v_str <span class="op">=</span> {<span class="va">True</span>: <span class="st">"TRUE - violation"</span>, <span class="va">False</span>: <span class="st">"False - compliant"</span>, <span class="va">None</span>: <span class="st">"None - unknown"</span>}[v]</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>name<span class="sc">:&lt;22}{</span>s_str<span class="sc">:&lt;28}{</span>v_str<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>case                  smoothed                    violation
+------------------------------------------------------------------
+seen once             None (too few obs)          None - unknown
+seen twice            None (too few obs)          None - unknown
+3x confident          no_helmet, conf 0.91        TRUE - violation
+3x low confidence     no_helmet, conf 0.58        None - unknown
+helmet, confident     helmet, conf 0.89           False - compliant
+split, high conf      no_helmet, conf 0.92        TRUE - violation
+borderline 0.70       no_helmet, conf 0.70        None - unknown</code></pre>
+</div>
+</div>
+<p>Three of these are worth dwelling on.</p>
+<p><strong>“seen twice”</strong> has a detection at 0.95 confidence and still returns nothing. The observation count gate runs first and doesn’t care how confident any single frame was.</p>
+<p><strong>“3x low confidence”</strong> clears the count but fails the threshold. The detector saw the same thing three times and wasn’t sure any of them.</p>
+<p><strong>“split, high conf”</strong> is confirmed as a violation despite one frame in three disagreeing the consequence of averaging model confidence rather than vote agreement.</p>
+</section>
+<section id="on-real-video" class="level2">
+<h2 class="anchored" data-anchor-id="on-real-video"><strong>On real video</strong></h2>
+<p>Run the first stages and see what the decision layer does with actual observations.</p>
+<div id="cell-19" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}}" data-outputid="0ac48633-c2b8-4faf-ccdb-32d6e1de8f4f" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> ultralytics <span class="im">import</span> YOLO</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> config</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> detection <span class="im">import</span> get_frame_detections</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> association <span class="im">import</span> associate_heads_to_riders</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> YOLO(config.MODEL_PATH)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> model.track(</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    source<span class="op">=</span>config.VIDEO_PATH,</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    classes<span class="op">=</span><span class="bu">list</span>(config.CLASS_NAMES.keys()),</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    tracker<span class="op">=</span>config.TRACKER,</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    persist<span class="op">=</span><span class="va">True</span>, stream<span class="op">=</span><span class="va">True</span>, verbose<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>observations <span class="op">=</span> {}</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>FRAME_LIMIT <span class="op">=</span> <span class="dv">300</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, r <span class="kw">in</span> <span class="bu">enumerate</span>(results):</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> i <span class="op">&gt;=</span> FRAME_LIMIT:</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>    det, confs <span class="op">=</span> get_frame_detections(r)</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>    matches <span class="op">=</span> associate_heads_to_riders(</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>        det[<span class="st">"rider"</span>], det[<span class="st">"helmet"</span>], det[<span class="st">"no_helmet"</span>],</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>        helmet_confs<span class="op">=</span>confs[<span class="st">"helmet"</span>], no_helmet_confs<span class="op">=</span>confs[<span class="st">"no_helmet"</span>],</span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> rider_id, (status, model_conf) <span class="kw">in</span> matches.items():</span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>        observations.setdefault(rider_id, []).append((status, model_conf))</span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"riders with at least one head observation: </span><span class="sc">{</span><span class="bu">len</span>(observations)<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<div class="ansi-escaped-output">
+<pre>Creating new Ultralytics Settings v0.0.8 file ✅ 
+
+View Ultralytics Settings with 'yolo settings' or at '/root/.config/Ultralytics/settings.json'
+
+Update Settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'. For help see https://docs.ultralytics.com/usage/settings.
+
+<span class="ansi-red-fg ansi-bold">requirements:</span> Ultralytics requirement ['lap&gt;=0.5.12'] not found, attempting AutoUpdate...
+
+Using Python 3.13.15 environment at: /usr
+
+Resolved 2 packages in 251ms
+
+Prepared 1 package in 62ms
+
+Installed 1 package in 1ms
+
+ + lap==0.5.13
+
+
+
+<span class="ansi-red-fg ansi-bold">requirements:</span> AutoUpdate success ✅ 0.6s
+
+WARNING ⚠️ <span class="ansi-red-fg ansi-bold">requirements:</span> <span class="ansi-bold">Restart runtime or rerun command for updates to take effect</span>
+
+
+
+riders with at least one head observation: 22
+</pre>
+</div>
+</div>
+</div>
+<div id="cell-20" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}}" data-outputid="bd709824-ca20-40f7-d956-04f0adf01ea1" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>outcomes <span class="op">=</span> {<span class="st">"violation"</span>: [], <span class="st">"compliant"</span>: [], <span class="st">"too few obs"</span>: [], <span class="st">"not confident"</span>: []}</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> rider_id <span class="kw">in</span> observations:</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> smooth_helmet_status(observations, rider_id)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    v <span class="op">=</span> decide_violation(s)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="bu">len</span>(observations[rider_id])</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> s <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>        outcomes[<span class="st">"too few obs"</span>].append(rider_id)</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> v <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>        outcomes[<span class="st">"not confident"</span>].append((rider_id, n, s[<span class="dv">1</span>]))</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> v:</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>        outcomes[<span class="st">"violation"</span>].append((rider_id, n, s[<span class="dv">1</span>]))</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>        outcomes[<span class="st">"compliant"</span>].append((rider_id, n, s[<span class="dv">1</span>]))</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> label, items <span class="kw">in</span> outcomes.items():</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>label<span class="sc">:&lt;16}</span><span class="ss"> </span><span class="sc">{</span><span class="bu">len</span>(items)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">confirmed violations:"</span>)</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> rid, n, conf <span class="kw">in</span> outcomes[<span class="st">"violation"</span>]:</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  rider </span><span class="sc">{</span>rid<span class="sc">:&lt;6}</span><span class="ss"> </span><span class="sc">{</span>n<span class="sc">:&gt;3}</span><span class="ss"> observations, avg confidence </span><span class="sc">{</span>conf<span class="sc">:.2f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>violation        3
+compliant        3
+too few obs      4
+not confident    12
+
+confirmed violations:
+  rider 1       63 observations, avg confidence 0.76
+  rider 6        6 observations, avg confidence 0.70
+  rider 420      5 observations, avg confidence 0.73</code></pre>
+</div>
+</div>
+<p>The “too few obs” group is usually the largest. That’s the system correctly declining to judge riders it barely saw.</p>
+<p>Look at one rider’s raw observation list to see what smoothing actually operated on.</p>
+<div id="cell-22" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}}" data-outputid="ecd1e783-58e9-45b7-e64b-80563df0f1a7" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> outcomes[<span class="st">"violation"</span>]:</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    rid <span class="op">=</span> outcomes[<span class="st">"violation"</span>][<span class="dv">0</span>][<span class="dv">0</span>]</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    votes <span class="op">=</span> observations[rid]</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"rider </span><span class="sc">{</span>rid<span class="sc">}</span><span class="ss"> - </span><span class="sc">{</span><span class="bu">len</span>(votes)<span class="sc">}</span><span class="ss"> observations</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> k, (status, conf) <span class="kw">in</span> <span class="bu">enumerate</span>(votes):</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>        bar <span class="op">=</span> <span class="st">"#"</span> <span class="op">*</span> <span class="bu">int</span>((conf <span class="kw">or</span> <span class="dv">0</span>) <span class="op">*</span> <span class="dv">20</span>)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span>k<span class="op">+</span><span class="dv">1</span><span class="sc">:&gt;3}</span><span class="ss">. </span><span class="sc">{</span>status<span class="sc">:&lt;11}</span><span class="ss"> </span><span class="sc">{</span>conf<span class="sc">:.2f}</span><span class="ss">  </span><span class="sc">{</span>bar<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    statuses <span class="op">=</span> [v[<span class="dv">0</span>] <span class="cf">for</span> v <span class="kw">in</span> votes]</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    top <span class="op">=</span> Counter(statuses).most_common(<span class="dv">1</span>)[<span class="dv">0</span>][<span class="dv">0</span>]</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">  majority:        </span><span class="sc">{</span>top<span class="sc">}</span><span class="ss"> (</span><span class="sc">{</span>statuses<span class="sc">.</span>count(top)<span class="sc">}</span><span class="ss">/</span><span class="sc">{</span><span class="bu">len</span>(statuses)<span class="sc">}</span><span class="ss"> frames)"</span>)</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  vote agreement:  </span><span class="sc">{</span>statuses<span class="sc">.</span>count(top)<span class="op">/</span><span class="bu">len</span>(statuses)<span class="sc">:.0%}</span><span class="ss">"</span>)</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  reported result: </span><span class="sc">{</span>smooth_helmet_status(observations, rid)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"no violations in this frame range - try raising FRAME_LIMIT"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>rider 1 - 63 observations
+
+    1. no_helmet   0.82  ################
+    2. no_helmet   0.81  ################
+    3. no_helmet   0.74  ##############
+    4. no_helmet   0.75  ##############
+    5. no_helmet   0.64  ############
+    6. no_helmet   0.61  ############
+    7. no_helmet   0.64  ############
+    8. no_helmet   0.77  ###############
+    9. no_helmet   0.81  ################
+   10. no_helmet   0.79  ###############
+   11. no_helmet   0.76  ###############
+   12. no_helmet   0.73  ##############
+   13. no_helmet   0.68  #############
+   14. no_helmet   0.70  ##############
+   15. no_helmet   0.67  #############
+   16. no_helmet   0.73  ##############
+   17. no_helmet   0.74  ##############
+   18. no_helmet   0.71  ##############
+   19. no_helmet   0.78  ###############
+   20. no_helmet   0.78  ###############
+   21. no_helmet   0.76  ###############
+   22. no_helmet   0.74  ##############
+   23. no_helmet   0.73  ##############
+   24. no_helmet   0.75  ##############
+   25. no_helmet   0.77  ###############
+   26. no_helmet   0.77  ###############
+   27. no_helmet   0.78  ###############
+   28. no_helmet   0.78  ###############
+   29. no_helmet   0.80  ################
+   30. no_helmet   0.79  ###############
+   31. no_helmet   0.79  ###############
+   32. no_helmet   0.79  ###############
+   33. no_helmet   0.78  ###############
+   34. no_helmet   0.77  ###############
+   35. no_helmet   0.78  ###############
+   36. no_helmet   0.79  ###############
+   37. no_helmet   0.76  ###############
+   38. no_helmet   0.77  ###############
+   39. no_helmet   0.79  ###############
+   40. no_helmet   0.78  ###############
+   41. no_helmet   0.77  ###############
+   42. no_helmet   0.78  ###############
+   43. no_helmet   0.77  ###############
+   44. no_helmet   0.75  ###############
+   45. no_helmet   0.78  ###############
+   46. no_helmet   0.78  ###############
+   47. no_helmet   0.77  ###############
+   48. no_helmet   0.78  ###############
+   49. no_helmet   0.77  ###############
+   50. no_helmet   0.80  ################
+   51. no_helmet   0.80  ###############
+   52. no_helmet   0.79  ###############
+   53. no_helmet   0.78  ###############
+   54. no_helmet   0.77  ###############
+   55. no_helmet   0.78  ###############
+   56. no_helmet   0.76  ###############
+   57. no_helmet   0.78  ###############
+   58. no_helmet   0.79  ###############
+   59. no_helmet   0.78  ###############
+   60. no_helmet   0.77  ###############
+   61. no_helmet   0.77  ###############
+   62. no_helmet   0.77  ###############
+   63. no_helmet   0.79  ###############
+
+  majority:        no_helmet (63/63 frames)
+  vote agreement:  100%
+  reported result: ('no_helmet', 0.7622728149096171)</code></pre>
+</div>
+</div>
+</section>
+<section id="try-it" class="level2">
+<h2 class="anchored" data-anchor-id="try-it"><strong>Try It</strong></h2>
+<p><strong>Drop <code>MIN_OBSERVATIONS</code> to 1.</strong> Every rider seen once becomes eligible.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>smooth_helmet_status(observations, rider_id, min_observations<span class="op">=</span><span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Count the extra violations. Do they hold up when you look at the frames?</p>
+<p><strong>Raise <code>MIN_CONFIDENCE</code> to 0.9.</strong> How many confirmed violations survive? Being stricter means fewer false accusations and more missed violations there’s no setting that avoids both.</p>
+<p><strong>Add a vote-agreement check.</strong> Write a version of <code>decide_violation</code> that also requires, say, 80% of frames to agree on the status. How many of the current violations does it reject?</p>
+<p>That last one is the interesting exercise. It’s a small change with a real effect on which riders get flagged, and it forces the question of what “confident” should mean in a system that issues tickets.</p>
+</section>
+<section id="next" class="level2">
+<h2 class="anchored" data-anchor-id="next"><strong>Next</strong></h2>
+<p>At this point every rider has a verdict. What’s left is turning that into something a person can look at boxes drawn on frames, evidence snapshots saved to disk. That’s <code>visualization.py</code>.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/shreyamali17@github\.com\/shreyamali17\/helmet-violation-detection\.git");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

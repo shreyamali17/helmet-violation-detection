@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>association.py – Helmet Violation Detection</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-445b8638c3d06994fee0907d791121c4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Helmet Violation Detection</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-pipeline-stages" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Pipeline Stages</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-pipeline-stages">    
+        <li>
+    <a class="dropdown-item" href="../notebooks/config.html">
+ <span class="dropdown-text">Configuration</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/detection.html">
+ <span class="dropdown-text">Detection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/geometry.html">
+ <span class="dropdown-text">Geometry Helpers</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/association.html">
+ <span class="dropdown-text">Association</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/rm_instance.html">
+ <span class="dropdown-text">Tracking Instances</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/temporal.html">
+ <span class="dropdown-text">Violation Logic</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/visualization.html">
+ <span class="dropdown-text">Visualization</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="../notebooks/fullpipeline.html"> 
+<span class="menu-text">Full Pipeline</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/shreyamali17/helmet-violation-detection"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#setup" id="toc-setup" class="nav-link active" data-scroll-target="#setup"><strong>Setup</strong></a></li>
+  <li><a href="#the-hungarian-algorithm" id="toc-the-hungarian-algorithm" class="nav-link" data-scroll-target="#the-hungarian-algorithm"><strong>The Hungarian Algorithm</strong></a></li>
+  <li><a href="#cost-matrices-two-ways" id="toc-cost-matrices-two-ways" class="nav-link" data-scroll-target="#cost-matrices-two-ways"><strong>Cost matrices, two ways</strong></a></li>
+  <li><a href="#function" id="toc-function" class="nav-link" data-scroll-target="#function"><strong>Function</strong></a></li>
+  <li><a href="#trying-both-on-a-real-frame" id="toc-trying-both-on-a-real-frame" class="nav-link" data-scroll-target="#trying-both-on-a-real-frame"><strong>Trying both on a real frame</strong></a></li>
+  <li><a href="#seeing-it" id="toc-seeing-it" class="nav-link" data-scroll-target="#seeing-it"><strong>Seeing It</strong></a></li>
+  <li><a href="#matching-heads-to-riders" id="toc-matching-heads-to-riders" class="nav-link" data-scroll-target="#matching-heads-to-riders"><strong>Matching Heads to Riders</strong></a></li>
+  <li><a href="#why-merge-the-two-classes" id="toc-why-merge-the-two-classes" class="nav-link" data-scroll-target="#why-merge-the-two-classes"><strong>Why merge the two classes</strong></a></li>
+  <li><a href="#matching-plates-to-motorcycles" id="toc-matching-plates-to-motorcycles" class="nav-link" data-scroll-target="#matching-plates-to-motorcycles"><strong>Matching plates to motorcycles</strong></a></li>
+  <li><a href="#try-it" id="toc-try-it" class="nav-link" data-scroll-target="#try-it"><strong>Try it</strong></a></li>
+  <li><a href="#next" id="toc-next" class="nav-link" data-scroll-target="#next">Next</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><strong>association.py</strong></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>This is where the pipeline stops listing objects and starts building relationships.</p>
+<p>Detection gives us five riders and four motorcycles. Nothing in that output says rider 7 is on motorcycle 12. But a helmet violation is a statement about a <em>rider on a motorcycle</em> get the pairing wrong and you attribute the violation to the wrong person, which is worse than missing it entirely.</p>
+<p>Three matches happen here, all using the same machinery:</p>
+<ul>
+<li>riders → motorcycles</li>
+<li>helmets / no-helmets → riders</li>
+<li>license plates → motorcycles</li>
+</ul>
+<p>This is also the file where a design decision was reversed after the original approach turned out to fail on real footage. We’ll look at both versions and the evidence for the switch.</p>
+<section id="setup" class="level2">
+<h2 class="anchored" data-anchor-id="setup"><strong>Setup</strong></h2>
+<div id="cell-3" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}}" data-outputid="de75bff3-bf94-41ae-82a7-875d7662ccc3" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="op">!</span>git clone <span class="op">-</span>q https:<span class="op">//</span>github.com<span class="op">/</span>shreyamali17<span class="op">/</span>helmet<span class="op">-</span>violation<span class="op">-</span>detection.git</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>cd helmet<span class="op">-</span>violation<span class="op">-</span>detection<span class="op">/</span>project<span class="op">/</span>pipeline</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="op">!</span>pip install <span class="op">-</span>q ultralytics scipy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<div class="ansi-escaped-output">
+<pre>/content/helmet-violation-detection/project/pipeline
+
+     <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">46.6/46.6 kB</span> <span class="ansi-red-fg">2.8 MB/s</span> eta <span class="ansi-cyan-fg">0:00:00</span>
+
+   <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">1.4/1.4 MB</span> <span class="ansi-red-fg">31.3 MB/s</span> eta <span class="ansi-cyan-fg">0:00:00</span>
+
+   <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">53.2/53.2 kB</span> <span class="ansi-red-fg">4.0 MB/s</span> eta <span class="ansi-cyan-fg">0:00:00</span>
+
+   <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">75.8/75.8 kB</span> <span class="ansi-red-fg">5.5 MB/s</span> eta <span class="ansi-cyan-fg">0:00:00</span>
+
+</pre>
+</div>
+</div>
+</div>
+<div id="cell-4" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}}" data-outputid="72a56b43-de5e-4492-9c37-cb0ac3642c44" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">#              bike A  bike B  bike C</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>costs <span class="op">=</span> np.array([</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    [  <span class="dv">1</span>,      <span class="dv">2</span>,      <span class="dv">99</span>  ],   <span class="co"># rider 1</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    [  <span class="dv">2</span>,      <span class="dv">99</span>,     <span class="dv">99</span>  ],   <span class="co"># rider 2</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    [  <span class="dv">99</span>,     <span class="dv">99</span>,     <span class="dv">3</span>   ],   <span class="co"># rider 3</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>])</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"># greedy: repeatedly take the lowest remaining cost</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>taken_rows, taken_cols, greedy_total <span class="op">=</span> <span class="bu">set</span>(), <span class="bu">set</span>(), <span class="dv">0</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>work <span class="op">=</span> costs.astype(<span class="bu">float</span>).copy()</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">3</span>):</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    i, j <span class="op">=</span> np.unravel_index(np.argmin(work), work.shape)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    greedy_total <span class="op">+=</span> costs[i, j]</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"greedy picks rider </span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss"> -&gt; bike </span><span class="sc">{</span><span class="st">'ABC'</span>[j]<span class="sc">}</span><span class="ss">  (cost </span><span class="sc">{</span>costs[i, j]<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    work[i, :] <span class="op">=</span> np.inf</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    work[:, j] <span class="op">=</span> np.inf</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">greedy total: </span><span class="sc">{</span>greedy_total<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>greedy picks rider 1 -&gt; bike A  (cost 1)
+greedy picks rider 3 -&gt; bike C  (cost 3)
+greedy picks rider 2 -&gt; bike B  (cost 99)
+
+greedy total: 103</code></pre>
+</div>
+</div>
+<p>Greedy grabs rider 1 → bike A first, because 1 is the smallest number on the table. That leaves rider 2 with nothing but a cost of 99.</p>
+<p>But rider 1 → bike B costs only 2, and would free bike A for rider 2. Total cost 2 + 2 + 3 = 7 instead of 1 + 99 + 3 = 103.</p>
+<p>The locally best choice blocked the globally best arrangement. That’s the failure mode greedy always has, and in a crowded traffic frame it happens regularly.</p>
+</section>
+<section id="the-hungarian-algorithm" class="level2">
+<h2 class="anchored" data-anchor-id="the-hungarian-algorithm"><strong>The Hungarian Algorithm</strong></h2>
+<p><code>scipy.optimize.linear_sum_assignment</code> solves this properly: it finds the set of pairings with the lowest <strong>total</strong> cost across everyone at once, rather than committing one pair at a time.</p>
+<p>Same table, correct answer.</p>
+<div id="cell-7" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}}" data-outputid="35385644-43bf-49bb-d749-15f66223d1c7" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.optimize <span class="im">import</span> linear_sum_assignment</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>row_ind, col_ind <span class="op">=</span> linear_sum_assignment(costs)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>total <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> r, c <span class="kw">in</span> <span class="bu">zip</span>(row_ind, col_ind):</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"rider </span><span class="sc">{</span>r<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss"> -&gt; bike </span><span class="sc">{</span><span class="st">'ABC'</span>[c]<span class="sc">}</span><span class="ss">  (cost </span><span class="sc">{</span>costs[r, c]<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    total <span class="op">+=</span> costs[r, c]</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">optimal total: </span><span class="sc">{</span>total<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>rider 1 -&gt; bike B  (cost 2)
+rider 2 -&gt; bike A  (cost 2)
+rider 3 -&gt; bike C  (cost 3)
+
+optimal total: 7</code></pre>
+</div>
+</div>
+<p>It returns two arrays of indices: <code>row_ind[k]</code> is paired with <code>col_ind[k]</code>.</p>
+<p>Every function in this file follows the same three steps:</p>
+<ol type="1">
+<li>Build a <strong>cost matrix</strong> one number per possible pairing, answering “how bad would this pairing be?”</li>
+<li>Hand it to <code>linear_sum_assignment</code> for the globally optimal set.</li>
+<li><strong>Throw out pairings that are still too expensive.</strong></li>
+</ol>
+<p>Step 3 is the one people skip, and it’s essential. Read on.</p>
+</section>
+<section id="cost-matrices-two-ways" class="level2">
+<h2 class="anchored" data-anchor-id="cost-matrices-two-ways"><strong>Cost matrices, two ways</strong></h2>
+<p>For rider-to-motorcycle, the file contains two definitions of cost. Both produce a matrix of the same shape; they disagree about what “close” means.</p>
+<div id="cell-10" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> geometry <span class="im">import</span> x_center, iou</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> build_cost_matrix_xdist(riders, motorcycles):</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""ORIGINAL method: cost = horizontal pixel distance between box centers."""</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    rider_ids <span class="op">=</span> <span class="bu">list</span>(riders.keys())</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    moto_ids <span class="op">=</span> <span class="bu">list</span>(motorcycles.keys())</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    cost_matrix <span class="op">=</span> np.zeros((<span class="bu">len</span>(rider_ids), <span class="bu">len</span>(moto_ids)))</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, rid <span class="kw">in</span> <span class="bu">enumerate</span>(rider_ids):</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>        rx <span class="op">=</span> x_center(riders[rid])</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j, mid <span class="kw">in</span> <span class="bu">enumerate</span>(moto_ids):</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>            cost_matrix[i, j] <span class="op">=</span> <span class="bu">abs</span>(rx <span class="op">-</span> x_center(motorcycles[mid]))</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> cost_matrix, rider_ids, moto_ids</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> build_cost_matrix_iou(riders, motorcycles):</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""NEW method: cost = 1 - IoU between rider and motorcycle boxes."""</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    rider_ids <span class="op">=</span> <span class="bu">list</span>(riders.keys())</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    moto_ids <span class="op">=</span> <span class="bu">list</span>(motorcycles.keys())</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    cost_matrix <span class="op">=</span> np.zeros((<span class="bu">len</span>(rider_ids), <span class="bu">len</span>(moto_ids)))</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, rid <span class="kw">in</span> <span class="bu">enumerate</span>(rider_ids):</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j, mid <span class="kw">in</span> <span class="bu">enumerate</span>(moto_ids):</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>            cost_matrix[i, j] <span class="op">=</span> <span class="fl">1.0</span> <span class="op">-</span> iou(riders[rid], motorcycles[mid])</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> cost_matrix, rider_ids, moto_ids</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Note the units are completely different. <code>xdist</code> produces pixel distances tens or hundreds. <code>iou</code> produces <code>1 : overlap</code>, always between 0 and 1.</p>
+<p>That’s why each method carries its own threshold:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>DEFAULT_MAX_COST <span class="op">=</span> {</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"xdist"</span>: <span class="dv">300</span>,    <span class="co"># pixels</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"iou"</span>: <span class="fl">0.9</span>,      <span class="co"># means IoU &gt;= 0.1</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>A threshold tuned for one is meaningless for the other.</p>
+</section>
+<section id="function" class="level2">
+<h2 class="anchored" data-anchor-id="function"><strong>Function</strong></h2>
+<p>Note where the threshold is applied: <strong>after</strong> the assignment, not before.</p>
+<p>The algorithm is asked for the best arrangement available, and only then do we check whether each individual pairing is actually good enough to keep. A “best available” match is not the same thing as a “good” match if there’s only one motorcycle in frame and it’s nowhere near the rider, it’s still the best option, and it still needs rejecting.</p>
+<div id="cell-13" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.optimize <span class="im">import</span> linear_sum_assignment</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>DEFAULT_MAX_COST <span class="op">=</span> {</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"xdist"</span>: <span class="dv">300</span>,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"iou"</span>: <span class="fl">0.9</span>,</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> associate_riders_to_motorcycles(riders, motorcycles, method<span class="op">=</span><span class="st">"iou"</span>, max_cost<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    max_cost <span class="op">=</span> max_cost <span class="cf">if</span> max_cost <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span> <span class="cf">else</span> DEFAULT_MAX_COST[method]</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> riders <span class="kw">or</span> <span class="kw">not</span> motorcycles:</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> []</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> method <span class="op">==</span> <span class="st">"xdist"</span>:</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>        cost_matrix, rider_ids, moto_ids <span class="op">=</span> build_cost_matrix_xdist(riders, motorcycles)</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> method <span class="op">==</span> <span class="st">"iou"</span>:</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>        cost_matrix, rider_ids, moto_ids <span class="op">=</span> build_cost_matrix_iou(riders, motorcycles)</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="ss">f"Unknown method: </span><span class="sc">{</span>method<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>    row_ind, col_ind <span class="op">=</span> linear_sum_assignment(cost_matrix)</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> [(rider_ids[r], moto_ids[c])</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> r, c <span class="kw">in</span> <span class="bu">zip</span>(row_ind, col_ind)</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> cost_matrix[r, c] <span class="op">&lt;=</span> max_cost]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The <code>if not riders or not motorcycles</code> guard matters more than it looks. <code>linear_sum_assignment</code> raises on an empty matrix, and frames with no riders are entirely normal. Returning an empty list keeps the pipeline moving.</p>
+</section>
+<section id="trying-both-on-a-real-frame" class="level2">
+<h2 class="anchored" data-anchor-id="trying-both-on-a-real-frame"><strong>Trying both on a real frame</strong></h2>
+<p>Let’s find a frame where the two methods disagree.</p>
+<div id="cell-16" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}}" data-outputid="7592377c-97df-494c-d511-2df039bace21" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> ultralytics <span class="im">import</span> YOLO</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> config</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> detection <span class="im">import</span> get_frame_detections</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> YOLO(config.MODEL_PATH)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> model.track(</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    source<span class="op">=</span>config.VIDEO_PATH,</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    classes<span class="op">=</span><span class="bu">list</span>(config.CLASS_NAMES.keys()),</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    tracker<span class="op">=</span>config.TRACKER,</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    persist<span class="op">=</span><span class="va">True</span>, stream<span class="op">=</span><span class="va">True</span>, verbose<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>TARGET_FRAME <span class="op">=</span> <span class="dv">220</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, r <span class="kw">in</span> <span class="bu">enumerate</span>(results):</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> i <span class="op">==</span> TARGET_FRAME:</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>        det, confs <span class="op">=</span> get_frame_detections(r)</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>        frame_img <span class="op">=</span> r.orig_img</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>riders <span class="op">=</span> det[<span class="st">"rider"</span>]</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>motorcycles <span class="op">=</span> det[<span class="st">"motorcycle"</span>]</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"frame </span><span class="sc">{</span>TARGET_FRAME<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span><span class="bu">len</span>(riders)<span class="sc">}</span><span class="ss"> riders, </span><span class="sc">{</span><span class="bu">len</span>(motorcycles)<span class="sc">}</span><span class="ss"> motorcycles"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<div class="ansi-escaped-output">
+<pre>Creating new Ultralytics Settings v0.0.8 file ✅ 
+
+View Ultralytics Settings with 'yolo settings' or at '/root/.config/Ultralytics/settings.json'
+
+Update Settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'. For help see https://docs.ultralytics.com/usage/settings.
+
+<span class="ansi-red-fg ansi-bold">requirements:</span> Ultralytics requirement ['lap&gt;=0.5.12'] not found, attempting AutoUpdate...
+
+Using Python 3.13.15 environment at: /usr
+
+Resolved 2 packages in 288ms
+
+Prepared 1 package in 84ms
+
+Installed 1 package in 1ms
+
+ + lap==0.5.13
+
+
+
+<span class="ansi-red-fg ansi-bold">requirements:</span> AutoUpdate success ✅ 0.7s
+
+WARNING ⚠️ <span class="ansi-red-fg ansi-bold">requirements:</span> <span class="ansi-bold">Restart runtime or rerun command for updates to take effect</span>
+
+
+
+frame 220: 4 riders, 3 motorcycles
+</pre>
+</div>
+</div>
+</div>
+<p>Look at the two cost matrices side by side before running the assignment.</p>
+<div id="cell-18" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}}" data-outputid="bef479fa-0b3e-4b83-ccbd-21f410267b62" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>cm_x, rids, mids <span class="op">=</span> build_cost_matrix_xdist(riders, motorcycles)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>cm_i, _, _ <span class="op">=</span> build_cost_matrix_iou(riders, motorcycles)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"xdist cost (pixels, lower = better):"</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"        "</span> <span class="op">+</span> <span class="st">""</span>.join(<span class="ss">f"M</span><span class="sc">{</span>m<span class="sc">:&lt;8}</span><span class="ss">"</span> <span class="cf">for</span> m <span class="kw">in</span> mids))</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, rid <span class="kw">in</span> <span class="bu">enumerate</span>(rids):</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  R</span><span class="sc">{</span>rid<span class="sc">:&lt;5}</span><span class="ss">"</span> <span class="op">+</span> <span class="st">""</span>.join(<span class="ss">f"</span><span class="sc">{</span>v<span class="sc">:&lt;9.0f}</span><span class="ss">"</span> <span class="cf">for</span> v <span class="kw">in</span> cm_x[i]))</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">iou cost (1 - overlap, lower = better):"</span>)</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"        "</span> <span class="op">+</span> <span class="st">""</span>.join(<span class="ss">f"M</span><span class="sc">{</span>m<span class="sc">:&lt;8}</span><span class="ss">"</span> <span class="cf">for</span> m <span class="kw">in</span> mids))</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, rid <span class="kw">in</span> <span class="bu">enumerate</span>(rids):</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  R</span><span class="sc">{</span>rid<span class="sc">:&lt;5}</span><span class="ss">"</span> <span class="op">+</span> <span class="st">""</span>.join(<span class="ss">f"</span><span class="sc">{</span>v<span class="sc">:&lt;9.3f}</span><span class="ss">"</span> <span class="cf">for</span> v <span class="kw">in</span> cm_i[i]))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>xdist cost (pixels, lower = better):
+        M5       M14      M1241    
+  R7    4        20       247      
+  R1174 146      170      396      
+  R1183 250      226      1        
+  R1295 280      256      30       
+
+iou cost (1 - overlap, lower = better):
+        M5       M14      M1241    
+  R7    0.438    0.803    1.000    
+  R1174 1.000    1.000    1.000    
+  R1183 1.000    1.000    0.497    
+  R1295 1.000    1.000    1.000    </code></pre>
+</div>
+</div>
+<p>Rows of <code>1.000</code> in the second table mean zero overlap : that rider’s box doesn’t touch that motorcycle’s box at all. The first table has no way to express that; every cell is just some number of pixels.</p>
+<div id="cell-20" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}}" data-outputid="e9a686e8-d8da-419a-d320-ddf77a9555d5" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>xdist_pairs <span class="op">=</span> <span class="bu">dict</span>(associate_riders_to_motorcycles(riders, motorcycles, method<span class="op">=</span><span class="st">"xdist"</span>))</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>iou_pairs   <span class="op">=</span> <span class="bu">dict</span>(associate_riders_to_motorcycles(riders, motorcycles, method<span class="op">=</span><span class="st">"iou"</span>))</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"xdist: </span><span class="sc">{</span><span class="bu">len</span>(xdist_pairs)<span class="sc">}</span><span class="ss"> pairings"</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> rid, mid <span class="kw">in</span> xdist_pairs.items():</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  rider </span><span class="sc">{</span>rid<span class="sc">}</span><span class="ss"> -&gt; motorcycle </span><span class="sc">{</span>mid<span class="sc">}</span><span class="ss">   (actual overlap: </span><span class="sc">{</span>iou(riders[rid], motorcycles[mid])<span class="sc">:.3f}</span><span class="ss">)"</span>)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">iou:   </span><span class="sc">{</span><span class="bu">len</span>(iou_pairs)<span class="sc">}</span><span class="ss"> pairings"</span>)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> rid, mid <span class="kw">in</span> iou_pairs.items():</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  rider </span><span class="sc">{</span>rid<span class="sc">}</span><span class="ss"> -&gt; motorcycle </span><span class="sc">{</span>mid<span class="sc">}</span><span class="ss">   (actual overlap: </span><span class="sc">{</span>iou(riders[rid], motorcycles[mid])<span class="sc">:.3f}</span><span class="ss">)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>xdist: 3 pairings
+  rider 7 -&gt; motorcycle 14   (actual overlap: 0.197)
+  rider 1174 -&gt; motorcycle 5   (actual overlap: 0.000)
+  rider 1183 -&gt; motorcycle 1241   (actual overlap: 0.503)
+
+iou:   2 pairings
+  rider 7 -&gt; motorcycle 5   (actual overlap: 0.562)
+  rider 1183 -&gt; motorcycle 1241   (actual overlap: 0.503)</code></pre>
+</div>
+</div>
+</section>
+<section id="seeing-it" class="level2">
+<h2 class="anchored" data-anchor-id="seeing-it"><strong>Seeing It</strong></h2>
+<p>Lines drawn between paired objects.</p>
+<div id="cell-22" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;,&quot;height&quot;:237}}" data-outputid="d61a30f7-3a99-4ba8-f01a-a7448f734805" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> cv2</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> draw_pairings(img, riders, motorcycles, pairs):</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    img <span class="op">=</span> img.copy()</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> rid, box <span class="kw">in</span> riders.items():</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>        x1, y1, x2, y2 <span class="op">=</span> <span class="bu">map</span>(<span class="bu">int</span>, box)</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>        cv2.rectangle(img, (x1, y1), (x2, y2), (<span class="dv">0</span>, <span class="dv">200</span>, <span class="dv">0</span>), <span class="dv">2</span>)</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>        cv2.putText(img, <span class="ss">f"R</span><span class="sc">{</span>rid<span class="sc">}</span><span class="ss">"</span>, (x1, <span class="bu">max</span>(y1<span class="op">-</span><span class="dv">8</span>, <span class="dv">15</span>)),</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>                    cv2.FONT_HERSHEY_SIMPLEX, <span class="fl">0.6</span>, (<span class="dv">0</span>, <span class="dv">200</span>, <span class="dv">0</span>), <span class="dv">2</span>)</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> mid, box <span class="kw">in</span> motorcycles.items():</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>        x1, y1, x2, y2 <span class="op">=</span> <span class="bu">map</span>(<span class="bu">int</span>, box)</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>        cv2.rectangle(img, (x1, y1), (x2, y2), (<span class="dv">255</span>, <span class="dv">150</span>, <span class="dv">0</span>), <span class="dv">2</span>)</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>        cv2.putText(img, <span class="ss">f"M</span><span class="sc">{</span>mid<span class="sc">}</span><span class="ss">"</span>, (x1, <span class="bu">max</span>(y1<span class="op">-</span><span class="dv">8</span>, <span class="dv">15</span>)),</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>                    cv2.FONT_HERSHEY_SIMPLEX, <span class="fl">0.6</span>, (<span class="dv">255</span>, <span class="dv">150</span>, <span class="dv">0</span>), <span class="dv">2</span>)</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> rid, mid <span class="kw">in</span> pairs.items():</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>        rx1, ry1, rx2, ry2 <span class="op">=</span> <span class="bu">map</span>(<span class="bu">int</span>, riders[rid])</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>        mx1, my1, mx2, my2 <span class="op">=</span> <span class="bu">map</span>(<span class="bu">int</span>, motorcycles[mid])</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>        cv2.line(img, ((rx1<span class="op">+</span>rx2)<span class="op">//</span><span class="dv">2</span>, (ry1<span class="op">+</span>ry2)<span class="op">//</span><span class="dv">2</span>),</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>                      ((mx1<span class="op">+</span>mx2)<span class="op">//</span><span class="dv">2</span>, (my1<span class="op">+</span>my2)<span class="op">//</span><span class="dv">2</span>), (<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">255</span>), <span class="dv">3</span>)</span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> cv2.cvtColor(img, cv2.COLOR_BGR2RGB)</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">20</span>, <span class="dv">8</span>))</span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].imshow(draw_pairings(frame_img, riders, motorcycles, xdist_pairs))</span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="ss">f"xdist - </span><span class="sc">{</span><span class="bu">len</span>(xdist_pairs)<span class="sc">}</span><span class="ss"> pairings"</span>)</span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].axis(<span class="st">"off"</span>)</span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].imshow(draw_pairings(frame_img, riders, motorcycles, iou_pairs))</span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_title(<span class="ss">f"iou - </span><span class="sc">{</span><span class="bu">len</span>(iou_pairs)<span class="sc">}</span><span class="ss"> pairings"</span>)</span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].axis(<span class="st">"off"</span>)</span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="association_files/figure-html/cell-10-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The xdist panel draws more lines, and some of them connect riders to motorcycles they have no contact with chosen because their horizontal positions happened to line up. With a 300-pixel threshold, quite a lot of the frame qualifies as “close.”</p>
+<p>The iou panel draws fewer lines, and leaves some riders unpaired. Every line it does draw corresponds to real box overlap.</p>
+<p>For this system that trade is clearly worth it. A wrong pairing can attribute a violation to the wrong rider. A missing pairing just means that rider isn’t checked <em>this frame</em> and matching runs again on the next one, and the one after that.</p>
+<p><code>x_center</code> stays in <code>geometry.py</code> only to make this comparison possible. The pipeline default is <code>iou</code>.</p>
+</section>
+<section id="matching-heads-to-riders" class="level2">
+<h2 class="anchored" data-anchor-id="matching-heads-to-riders"><strong>Matching Heads to Riders</strong></h2>
+<p>Same machinery, different cost and one design decision worth noticing.</p>
+<p>Helmets and no-helmets arrive as two separate detection classes. This function merges them into a single pool of “heads” before matching, tagging each one with which type it was.</p>
+<div id="cell-25" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> geometry <span class="im">import</span> top_center, center</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> config <span class="im">import</span> HEAD_RIDER_MAX_COST</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> associate_heads_to_riders(riders, helmets, no_helmets,</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>                              helmet_confs<span class="op">=</span><span class="va">None</span>, no_helmet_confs<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>                              max_cost<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Returns {rider_id: (status, model_confidence)}."""</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    max_cost <span class="op">=</span> max_cost <span class="cf">if</span> max_cost <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span> <span class="cf">else</span> HEAD_RIDER_MAX_COST</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    helmet_confs <span class="op">=</span> helmet_confs <span class="kw">or</span> {}</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    no_helmet_confs <span class="op">=</span> no_helmet_confs <span class="kw">or</span> {}</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># merge both classes into one pool, remembering which was which</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>    heads, head_type, head_conf <span class="op">=</span> {}, {}, {}</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> hid, box <span class="kw">in</span> helmets.items():</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>        heads[hid] <span class="op">=</span> box<span class="op">;</span> head_type[hid] <span class="op">=</span> <span class="st">"helmet"</span><span class="op">;</span> head_conf[hid] <span class="op">=</span> helmet_confs.get(hid)</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> hid, box <span class="kw">in</span> no_helmets.items():</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>        heads[hid] <span class="op">=</span> box<span class="op">;</span> head_type[hid] <span class="op">=</span> <span class="st">"no_helmet"</span><span class="op">;</span> head_conf[hid] <span class="op">=</span> no_helmet_confs.get(hid)</span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> riders <span class="kw">or</span> <span class="kw">not</span> heads:</span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> {}</span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>    rider_ids, head_ids <span class="op">=</span> <span class="bu">list</span>(riders.keys()), <span class="bu">list</span>(heads.keys())</span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>    cost_matrix <span class="op">=</span> np.zeros((<span class="bu">len</span>(rider_ids), <span class="bu">len</span>(head_ids)))</span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, rid <span class="kw">in</span> <span class="bu">enumerate</span>(rider_ids):</span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>        rx, ry <span class="op">=</span> top_center(riders[rid])          <span class="co"># head sits at the TOP of a rider</span></span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j, hid <span class="kw">in</span> <span class="bu">enumerate</span>(head_ids):</span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>            hx, hy <span class="op">=</span> center(heads[hid])</span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>            cost_matrix[i, j] <span class="op">=</span> ((rx<span class="op">-</span>hx)<span class="op">**</span><span class="dv">2</span> <span class="op">+</span> (ry<span class="op">-</span>hy)<span class="op">**</span><span class="dv">2</span>) <span class="op">**</span> <span class="fl">0.5</span></span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a>    row_ind, col_ind <span class="op">=</span> linear_sum_assignment(cost_matrix)</span>
+<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {</span>
+<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a>        rider_ids[r]: (head_type[head_ids[c]], head_conf[head_ids[c]])</span>
+<span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> r, c <span class="kw">in</span> <span class="bu">zip</span>(row_ind, col_ind) <span class="cf">if</span> cost_matrix[r, c] <span class="op">&lt;=</span> max_cost</span>
+<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="why-merge-the-two-classes" class="level2">
+<h2 class="anchored" data-anchor-id="why-merge-the-two-classes"><strong>Why merge the two classes</strong></h2>
+<p>Because a rider has exactly one head.</p>
+<p>If helmets and no-helmets were matched separately, the same rider could come back paired with a helmet <em>and</em> a no-helmet two contradictory answers, and nothing to arbitrate between them.</p>
+<p>Merging first makes the two classes compete for the same rider through the same assignment. Whichever detection is geometrically closest wins, and each rider gets at most one verdict. The constraint is enforced by the structure rather than by a cleanup step afterwards.</p>
+<p>Note the cost here is plain Euclidean distance from the rider’s <strong>top edge</strong> to the head’s center : the <code>top_center</code> choice from <code>geometry.py</code>, doing real work.</p>
+<div id="cell-27" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}}" data-outputid="fd4c25fb-12a6-4097-c697-ac687dd131ee" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>head_matches <span class="op">=</span> associate_heads_to_riders(</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    riders, det[<span class="st">"helmet"</span>], det[<span class="st">"no_helmet"</span>],</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    helmet_confs<span class="op">=</span>confs[<span class="st">"helmet"</span>], no_helmet_confs<span class="op">=</span>confs[<span class="st">"no_helmet"</span>],</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> rider_id, (status, model_conf) <span class="kw">in</span> head_matches.items():</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    conf_str <span class="op">=</span> <span class="ss">f"</span><span class="sc">{</span>model_conf<span class="sc">:.2f}</span><span class="ss">"</span> <span class="cf">if</span> model_conf <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span> <span class="cf">else</span> <span class="st">"n/a"</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"rider </span><span class="sc">{</span>rider_id<span class="sc">:&lt;6}</span><span class="ss"> </span><span class="sc">{</span>status<span class="sc">:&lt;10}</span><span class="ss"> (model confidence </span><span class="sc">{</span>conf_str<span class="sc">}</span><span class="ss">)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>rider 7      no_helmet  (model confidence 0.40)</code></pre>
+</div>
+</div>
+<p>Two different confidences appear in this pipeline and it’s worth keeping them apart.</p>
+<p><strong>Model confidence</strong> is what comes back here how sure YOLO was about <em>this one detection in this one frame</em>.</p>
+<p><strong>Temporal confidence</strong>, computed in the next stage, is how consistently a rider’s status held up across many frames.</p>
+<p>A single detection at 0.95 is not the same as twenty detections that agree. The second is what actually earns a violation.</p>
+</section>
+<section id="matching-plates-to-motorcycles" class="level2">
+<h2 class="anchored" data-anchor-id="matching-plates-to-motorcycles"><strong>Matching plates to motorcycles</strong></h2>
+<p>The third match, and the simplest. Identical structure to heads-to-riders, with <code>bottom_center</code> instead of <code>top_center</code> plates are mounted low on a bike.</p>
+<div id="cell-30" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> geometry <span class="im">import</span> bottom_center</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> config <span class="im">import</span> PLATE_MOTO_MAX_COST</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> associate_plates_to_motorcycles(motorcycles, plates, max_cost<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    max_cost <span class="op">=</span> max_cost <span class="cf">if</span> max_cost <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span> <span class="cf">else</span> PLATE_MOTO_MAX_COST</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> motorcycles <span class="kw">or</span> <span class="kw">not</span> plates:</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> {}</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    moto_ids, plate_ids <span class="op">=</span> <span class="bu">list</span>(motorcycles.keys()), <span class="bu">list</span>(plates.keys())</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>    cost_matrix <span class="op">=</span> np.zeros((<span class="bu">len</span>(moto_ids), <span class="bu">len</span>(plate_ids)))</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, mid <span class="kw">in</span> <span class="bu">enumerate</span>(moto_ids):</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>        mx, my <span class="op">=</span> bottom_center(motorcycles[mid])</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j, pid <span class="kw">in</span> <span class="bu">enumerate</span>(plate_ids):</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>            px, py <span class="op">=</span> center(plates[pid])</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>            cost_matrix[i, j] <span class="op">=</span> ((mx<span class="op">-</span>px)<span class="op">**</span><span class="dv">2</span> <span class="op">+</span> (my<span class="op">-</span>py)<span class="op">**</span><span class="dv">2</span>) <span class="op">**</span> <span class="fl">0.5</span></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>    row_ind, col_ind <span class="op">=</span> linear_sum_assignment(cost_matrix)</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {moto_ids[r]: plate_ids[c]</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> r, c <span class="kw">in</span> <span class="bu">zip</span>(row_ind, col_ind) <span class="cf">if</span> cost_matrix[r, c] <span class="op">&lt;=</span> max_cost}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="cell-31" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}}" data-outputid="4b5e8519-efd9-444b-9624-524be436cca9" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>plate_matches <span class="op">=</span> associate_plates_to_motorcycles(motorcycles, det[<span class="st">"license_plate"</span>])</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="bu">len</span>(det[<span class="st">'license_plate'</span>])<span class="sc">}</span><span class="ss"> plates detected, </span><span class="sc">{</span><span class="bu">len</span>(plate_matches)<span class="sc">}</span><span class="ss"> matched to a motorcycle"</span>)</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> mid, pid <span class="kw">in</span> plate_matches.items():</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  motorcycle </span><span class="sc">{</span>mid<span class="sc">}</span><span class="ss"> -&gt; plate </span><span class="sc">{</span>pid<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>1 plates detected, 1 matched to a motorcycle
+  motorcycle 5 -&gt; plate 832</code></pre>
+</div>
+</div>
+<p>The threshold here is 100 pixels, more generous than the 60 used for heads. Plates are small and often partly obscured, so their detected centers wander more than a head’s does.</p>
+</section>
+<section id="try-it" class="level2">
+<h2 class="anchored" data-anchor-id="try-it"><strong>Try it</strong></h2>
+<p><strong>Loosen the overlap requirement.</strong> <code>max_cost=1.0</code> accepts any pairing, including zero overlap:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>associate_riders_to_motorcycles(riders, motorcycles, method<span class="op">=</span><span class="st">"iou"</span>, max_cost<span class="op">=</span><span class="fl">1.0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>How many extra pairings appear, and do they survive a look at the frame?</p>
+<p><strong>Tighten it.</strong> <code>max_cost=0.5</code> demands 50% overlap. How many real pairings get thrown away?</p>
+<p><strong>Change the xdist threshold.</strong> The default is 300 pixels on a 2560-wide frame more than a tenth of the image. Try 100 and see whether xdist starts behaving more like iou.</p>
+<p><strong>Find a disagreement.</strong> Loop over frames and print those where the two methods return different numbers of pairings. How common is it?</p>
+</section>
+<section id="next" class="level2">
+<h2 class="anchored" data-anchor-id="next">Next</h2>
+<p>Every match here happens within a single frame, and is recomputed from scratch on the next one. Nothing yet remembers that rider 7 was paired with motorcycle 12 a moment ago, or that they looked helmetless three frames running.</p>
+<p>That memory is what <code>rm_instance.py</code> and <code>temporal.py</code> add.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/shreyamali17@github\.com\/shreyamali17\/helmet-violation-detection\.git");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
