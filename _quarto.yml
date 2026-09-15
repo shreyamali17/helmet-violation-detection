@@ -25,6 +25,12 @@ website:
             text: Visualization
       - href: notebooks/fullpipeline.ipynb
         text: Full Pipeline
+      - text: Deployment
+        menu:
+          - href: notebooks/optimization.ipynb
+            text: Optimization
+          - href: notebooks/jetson_nano.ipynb
+            text: Jetson Nano
     right:
       - icon: github
         href: https://github.com/shreyamali17/helmet-violation-detection
