@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Exporting to TensorRT – Helmet Violation Detection</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-445b8638c3d06994fee0907d791121c4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Helmet Violation Detection</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-pipeline-stages" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Pipeline Stages</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-pipeline-stages">    
+        <li>
+    <a class="dropdown-item" href="../notebooks/config.html">
+ <span class="dropdown-text">Configuration</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/detection.html">
+ <span class="dropdown-text">Detection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/geometry.html">
+ <span class="dropdown-text">Geometry Helpers</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/association.html">
+ <span class="dropdown-text">Association</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/rm_instance.html">
+ <span class="dropdown-text">Tracking Instances</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/temporal.html">
+ <span class="dropdown-text">Violation Logic</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/visualization.html">
+ <span class="dropdown-text">Visualization</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-pipeline" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Pipeline</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-pipeline">    
+        <li>
+    <a class="dropdown-item" href="../notebooks/quick_pipeline.html">
+ <span class="dropdown-text">Quick Access</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/full_pipeline.html">
+ <span class="dropdown-text">Complete Pipeline</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link active" href="../notebooks/edge_deployment.html" aria-current="page"> 
+<span class="menu-text">Deployment</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/shreyamali17/helmet-violation-detection"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#trying-fp16-instead-of-fp32" id="toc-trying-fp16-instead-of-fp32" class="nav-link active" data-scroll-target="#trying-fp16-instead-of-fp32"><strong>Trying FP16 instead of FP32</strong></a></li>
+  <li><a href="#re-exporting-with-fp16" id="toc-re-exporting-with-fp16" class="nav-link" data-scroll-target="#re-exporting-with-fp16"><strong>Re-exporting with FP16</strong></a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><strong>Exporting to TensorRT</strong></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Right now, the pipeline runs the model file (<code>best.pt</code>) directly through PyTorch, the same way it would run on a laptop or cloud server. This works, but it’s not optimized for this specific chip.</p>
+<p><strong>TensorRT</strong> is NVIDIA’s tool for compiling a model specifically for the exact GPU it’ll run on, in this case, the Jetson Orin Nano’s GPU. Instead of interpreting the model’s instructions on the fly (what PyTorch does), TensorRT pre-compiles a version tailored to this hardware’s exact capabilities, typically resulting in a large speed improvement with little to no accuracy loss.</p>
+<p>This is a one-time compilation step, it takes a few minutes, but only needs to happen once per model per device.</p>
+<div id="4b4d6cf0" class="cell" data-execution_count="28">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> ultralytics <span class="im">import</span> YOLO</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> config</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> YOLO(config.MODEL_PATH)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>model.export(<span class="bu">format</span><span class="op">=</span><span class="st">"engine"</span>, device<span class="op">=</span><span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<div class="ansi-escaped-output">
+<pre>Ultralytics 8.4.86 🚀 Python-3.12.3 torch-2.12.1+cu130 CUDA:0 (Orin, 7485MiB)
+
+Model summary (fused): 73 layers, 11,127,519 parameters, 0 gradients, 28.4 GFLOPs
+
+
+
+<span class="ansi-blue-fg ansi-bold">PyTorch:</span> starting from '/home/emertxe/Desktop/Emertxe/Shreya/helmet-detection-violation/best.pt' with input shape (1, 3, 1280, 1280) BCHW and output shape(s) (1, 9, 33600) (64.1 MB)
+
+
+
+<span class="ansi-blue-fg ansi-bold">ONNX:</span> starting export with onnx 1.22.0 opset 18...
+
+<span class="ansi-blue-fg ansi-bold">ONNX:</span> slimming with onnxslim 0.1.94...
+</pre>
+</div>
+</div>
+<div class="cell-output cell-output-stderr">
+<div class="ansi-escaped-output">
+<pre><span class="ansi-bright-yellow-fg">2026-07-27 15:51:26.500703482 [W:onnxruntime:Default, device_discovery.cc:283 GetGpuDevices] Failed to detect devices under "/sys/class/drm/card1": device_discovery.cc:93 ReadFileContents Failed to open file: "/sys/class/drm/card1/device/vendor"</span>
+
+<span class="ansi-bright-yellow-fg">2026-07-27 15:51:26.501414220 [W:onnxruntime:Default, device_discovery.cc:283 GetGpuDevices] Failed to detect devices under "/sys/class/drm/card0": device_discovery.cc:93 ReadFileContents Failed to open file: "/sys/class/drm/card0/device/vendor"</span>
+</pre>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<div class="ansi-escaped-output">
+<pre><span class="ansi-blue-fg ansi-bold">ONNX:</span> export success ✅ 2.4s, saved as '/home/emertxe/Desktop/Emertxe/Shreya/helmet-detection-violation/best.onnx' (43.2 MB)
+
+
+
+<span class="ansi-blue-fg ansi-bold">TensorRT:</span> starting export with TensorRT 11.1.0.106...
+
+[07/27/2026-15:51:27] [TRT] [I] [MemUsageChange] Init CUDA: CPU +0, GPU +0, now: CPU 1820, GPU 6404 (MiB)
+
+[07/27/2026-15:51:28] [TRT] [I] ----------------------------------------------------------------
+
+[07/27/2026-15:51:28] [TRT] [I] Input filename:   /home/emertxe/Desktop/Emertxe/Shreya/helmet-detection-violation/best.onnx
+
+[07/27/2026-15:51:28] [TRT] [I] ONNX IR version:  0.0.8
+
+[07/27/2026-15:51:28] [TRT] [I] Opset version:    18
+
+[07/27/2026-15:51:28] [TRT] [I] Producer name:    pytorch
+
+[07/27/2026-15:51:28] [TRT] [I] Producer version: 2.12.1
+
+[07/27/2026-15:51:28] [TRT] [I] Domain:           
+
+[07/27/2026-15:51:28] [TRT] [I] Model version:    0
+
+[07/27/2026-15:51:28] [TRT] [I] Doc string:       
+
+[07/27/2026-15:51:28] [TRT] [I] ----------------------------------------------------------------
+
+<span class="ansi-blue-fg ansi-bold">TensorRT:</span> input "images" with shape(1, 3, 1280, 1280) DataType.FLOAT
+
+<span class="ansi-blue-fg ansi-bold">TensorRT:</span> output "output0" with shape(1, 9, 33600) DataType.FLOAT
+
+<span class="ansi-blue-fg ansi-bold">TensorRT:</span> building FP32 engine as /home/emertxe/Desktop/Emertxe/Shreya/helmet-detection-violation/best.engine
+
+[07/27/2026-15:51:28] [TRT] [I] [MemUsageChange] Init builder kernel library: CPU +200, GPU +69, now: CPU 2202, GPU 6665 (MiB)
+
+[07/27/2026-15:51:29] [TRT] [I] Local timing cache in use. Profiling results in this builder pass will not be stored.
+
+[07/27/2026-15:51:34] [TRT] [I] Compiler backend is used during engine build.
+
+[07/27/2026-15:55:16] [TRT] [I] Detected 1 inputs and 3 output network tensors.
+
+[07/27/2026-15:55:20] [TRT] [I] Total Host Persistent Memory: 400720 bytes
+
+[07/27/2026-15:55:20] [TRT] [I] Total Device Persistent Memory: 0 bytes
+
+[07/27/2026-15:55:20] [TRT] [I] Max Scratch Memory: 0 bytes
+
+[07/27/2026-15:55:20] [TRT] [I] [BlockAssignment] Started assigning block shifts. This will take 190 steps to complete.
+
+[07/27/2026-15:55:20] [TRT] [I] [BlockAssignment] Algorithm ShiftNTopDown took 18.4186ms to assign 8 blocks to 190 nodes requiring 141575168 bytes.
+
+[07/27/2026-15:55:20] [TRT] [I] Total Activation Memory: 141574656 bytes
+
+[07/27/2026-15:55:20] [TRT] [I] Total Weights Memory: 44930052 bytes
+
+[07/27/2026-15:55:20] [TRT] [I] Compiler backend is used during engine execution.
+
+[07/27/2026-15:55:20] [TRT] [I] Engine generation completed in 231.402 seconds.
+
+[07/27/2026-15:55:20] [TRT] [I] [MemUsageStats] Peak memory usage of TRT CPU/GPU memory allocators: CPU 4 MiB, GPU 462 MiB
+
+<span class="ansi-blue-fg ansi-bold">TensorRT:</span> export success ✅ 235.6s, saved as '/home/emertxe/Desktop/Emertxe/Shreya/helmet-detection-violation/best.engine' (44.2 MB)
+
+
+
+Export complete (263.5s)
+
+Results saved to <span class="ansi-bold">/home/emertxe/Desktop/Emertxe/Shreya/helmet-detection-violation/best.engine</span>
+
+Predict:         yolo predict task=detect model=/home/emertxe/Desktop/Emertxe/Shreya/helmet-detection-violation/best.engine imgsz=1280 
+
+Validate:        yolo val task=detect model=/home/emertxe/Desktop/Emertxe/Shreya/helmet-detection-violation/best.engine imgsz=1280 data=/workspace/Vedant/yolo_dataset/data.yaml  
+
+Visualize:       https://netron.app
+</pre>
+</div>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="28">
+<pre><code>PosixPath('/home/emertxe/Desktop/Emertxe/Shreya/helmet-detection-violation/best.engine')</code></pre>
+</div>
+</div>
+<section id="the-tensorrt-engine-exported" class="level4">
+<h4 class="anchored" data-anchor-id="the-tensorrt-engine-exported"><strong>The TensorRT engine : exported</strong></h4>
+<p>Exporting took about 4.4 minutes, a one-time cost. This produced <code>best.engine</code>, a version of the model compiled specifically for this Jetson Orin Nano’s GPU. Let’s now run the exact same full-video pipeline against this engine file instead of the original <code>.pt</code> file, and compare.</p>
+<div id="9336bac5" class="cell" data-execution_count="29">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> main <span class="im">import</span> run_pipeline, save_outputs</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>start <span class="op">=</span> time.time()</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>manager_trt, observations_trt, plate_matches_trt, sample_frames_trt <span class="op">=</span> run_pipeline(</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    model_path<span class="op">=</span><span class="st">"best.engine"</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>elapsed_trt <span class="op">=</span> time.time() <span class="op">-</span> start</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Total time (TensorRT): </span><span class="sc">{</span>elapsed_trt<span class="sc">:.1f}</span><span class="ss"> seconds"</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"FPS (TensorRT): </span><span class="sc">{</span><span class="dv">1500</span> <span class="op">/</span> elapsed_trt<span class="sc">:.2f}</span><span class="ss">"</span>)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">For comparison, PyTorch baseline: 175.8 seconds, </span><span class="sc">{</span><span class="dv">1500</span><span class="op">/</span><span class="fl">175.8</span><span class="sc">:.2f}</span><span class="ss"> FPS"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>WARNING ⚠️ Unable to automatically guess model task, assuming 'task=detect'. Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify', 'pose', 'obb' or 'semantic'.
+Loading best.engine for TensorRT inference...
+[07/27/2026-15:56:34] [TRT] [I] Loaded engine size: 44 MiB
+[07/27/2026-15:56:34] [TRT] [I] [MemUsageChange] TensorRT-managed allocation in IExecutionContext creation: CPU +0, GPU +135, now: CPU 0, GPU 177 (MiB)
+Processed 1500 frames from: /home/emertxe/Desktop/Emertxe/Shreya/helmet-detection-violation/sample_videos/20211125082353_0060.mp4
+Model: best.engine
+  total_instances: 110
+  confident_helmet_status: 36
+  confirmed_violations: 13
+
+Total time (TensorRT): 173.7 seconds
+FPS (TensorRT): 8.64
+
+For comparison, PyTorch baseline: 175.8 seconds, 8.53 FPS</code></pre>
+</div>
+</div>
+</section>
+<section id="trying-fp16-instead-of-fp32" class="level3">
+<h3 class="anchored" data-anchor-id="trying-fp16-instead-of-fp32"><strong>Trying FP16 instead of FP32</strong></h3>
+<p>The engine we exported used FP32 (full precision), the same precision PyTorch uses by default. TensorRT’s typical speedup often comes specifically from switching to FP16 (half precision), which does less work per calculation at a small, usually negligible, accuracy cost. Let’s export an FP16 version and see if that closes the gap.</p>
+<div id="900f7153" class="cell" data-execution_count="30">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> ultralytics <span class="im">import</span> YOLO</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> config</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> YOLO(config.MODEL_PATH)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>model.export(<span class="bu">format</span><span class="op">=</span><span class="st">"engine"</span>, device<span class="op">=</span><span class="dv">0</span>, half<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<div class="ansi-escaped-output">
+<pre>WARNING ⚠️ 'half' is deprecated and will be removed in the future. Use 'quantize' instead.
+
+Ultralytics 8.4.86 🚀 Python-3.12.3 torch-2.12.1+cu130 CUDA:0 (Orin, 7485MiB)
+
+Model summary (fused): 73 layers, 11,127,519 parameters, 0 gradients, 28.4 GFLOPs
+
+
+
+<span class="ansi-blue-fg ansi-bold">PyTorch:</span> starting from '/home/emertxe/Desktop/Emertxe/Shreya/helmet-detection-violation/best.pt' with input shape (1, 3, 1280, 1280) BCHW and output shape(s) (1, 9, 33600) (64.1 MB)
+
+
+
+<span class="ansi-blue-fg ansi-bold">ONNX:</span> starting export with onnx 1.22.0 opset 18...
+
+<span class="ansi-blue-fg ansi-bold">ONNX:</span> slimming with onnxslim 0.1.94...
+
+<span class="ansi-blue-fg ansi-bold">ONNX:</span> export success ✅ 2.3s, saved as '/home/emertxe/Desktop/Emertxe/Shreya/helmet-detection-violation/best.onnx' (43.2 MB)
+
+
+
+<span class="ansi-blue-fg ansi-bold">TensorRT:</span> starting export with TensorRT 11.1.0.106...
+
+<span class="ansi-red-fg ansi-bold">requirements:</span> Ultralytics requirement ['nvidia-modelopt[onnx]&gt;=0.44'] not found, attempting AutoUpdate...
+
+Collecting nvidia-modelopt&gt;=0.44 (from nvidia-modelopt[onnx]&gt;=0.44)
+
+  Downloading nvidia_modelopt-0.45.0-py3-none-any.whl.metadata (5.2 kB)
+
+Collecting ninja (from nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44)
+
+  Downloading ninja-1.13.0-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl.metadata (5.1 kB)
+
+Requirement already satisfied: numpy in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (2.5.0)
+
+Requirement already satisfied: nvidia-ml-py&gt;=12 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (13.610.43)
+
+Requirement already satisfied: packaging in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (26.2)
+
+Requirement already satisfied: setuptools&gt;=80 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (81.0.0)
+
+Requirement already satisfied: torch&gt;=2.8 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (2.12.1)
+
+Collecting tqdm (from nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44)
+
+  Downloading tqdm-4.69.1-py3-none-any.whl.metadata (57 kB)
+
+Requirement already satisfied: PyYAML&gt;=6.0 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (6.0.3)
+
+Collecting omegaconf&gt;=2.3.0 (from nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44)
+
+  Downloading omegaconf-2.3.1-py3-none-any.whl.metadata (4.5 kB)
+
+Collecting pulp&lt;4.0 (from nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44)
+
+  Downloading pulp-3.3.2-py3-none-any.whl.metadata (8.6 kB)
+
+Requirement already satisfied: pydantic&gt;=2.0 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (2.13.4)
+
+Collecting regex (from nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44)
+
+  Downloading regex-2026.7.19-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl.metadata (40 kB)
+
+Collecting rich (from nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44)
+
+  Downloading rich-15.0.0-py3-none-any.whl.metadata (18 kB)
+
+Collecting safetensors (from nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44)
+
+  Downloading safetensors-0.8.0-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (4.2 kB)
+
+Requirement already satisfied: scipy in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (1.18.0)
+
+Collecting cppimport (from nvidia-modelopt[onnx]&gt;=0.44)
+
+  Downloading cppimport-26.4.17.tar.gz (28 kB)
+
+  Installing build dependencies: started
+
+  Installing build dependencies: finished with status 'done'
+
+  Getting requirements to build wheel: started
+
+  Getting requirements to build wheel: finished with status 'done'
+
+  Preparing metadata (pyproject.toml): started
+
+  Preparing metadata (pyproject.toml): finished with status 'done'
+
+Collecting lief (from nvidia-modelopt[onnx]&gt;=0.44)
+
+  Downloading lief-1.0.0-cp312-abi3-manylinux_2_28_aarch64.whl.metadata (2.4 kB)
+
+Requirement already satisfied: ml_dtypes in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from nvidia-modelopt[onnx]&gt;=0.44) (0.5.4)
+
+Collecting onnx-graphsurgeon&gt;=0.6.1 (from nvidia-modelopt[onnx]&gt;=0.44)
+
+  Downloading onnx_graphsurgeon-0.6.1-py2.py3-none-any.whl.metadata (8.2 kB)
+
+Collecting onnx~=1.21.0 (from nvidia-modelopt[onnx]&gt;=0.44)
+
+  Downloading onnx-1.21.0-cp312-abi3-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl.metadata (8.5 kB)
+
+Collecting onnxconverter-common~=1.16.0 (from nvidia-modelopt[onnx]&gt;=0.44)
+
+  Downloading onnxconverter_common-1.16.0-py2.py3-none-any.whl.metadata (4.8 kB)
+
+Collecting onnxruntime~=1.24.2 (from nvidia-modelopt[onnx]&gt;=0.44)
+
+  Downloading onnxruntime-1.24.4-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl.metadata (5.2 kB)
+
+Collecting onnxscript (from nvidia-modelopt[onnx]&gt;=0.44)
+
+  Downloading onnxscript-0.7.1-py3-none-any.whl.metadata (13 kB)
+
+Requirement already satisfied: onnxslim&gt;=0.1.76 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from nvidia-modelopt[onnx]&gt;=0.44) (0.1.94)
+
+Collecting polygraphy&gt;=0.49.22 (from nvidia-modelopt[onnx]&gt;=0.44)
+
+  Downloading polygraphy-0.50.3-py3-none-any.whl.metadata (5.8 kB)
+
+Requirement already satisfied: protobuf&gt;=4.25.1 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from onnx~=1.21.0-&gt;nvidia-modelopt[onnx]&gt;=0.44) (7.35.1)
+
+Requirement already satisfied: typing_extensions&gt;=4.7.1 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from onnx~=1.21.0-&gt;nvidia-modelopt[onnx]&gt;=0.44) (4.16.0)
+
+Requirement already satisfied: flatbuffers in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from onnxruntime~=1.24.2-&gt;nvidia-modelopt[onnx]&gt;=0.44) (25.12.19)
+
+Requirement already satisfied: sympy in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from onnxruntime~=1.24.2-&gt;nvidia-modelopt[onnx]&gt;=0.44) (1.14.0)
+
+Collecting antlr4-python3-runtime==4.9.* (from omegaconf&gt;=2.3.0-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44)
+
+  Downloading antlr4-python3-runtime-4.9.3.tar.gz (117 kB)
+
+  Installing build dependencies: started
+
+  Installing build dependencies: finished with status 'done'
+
+  Getting requirements to build wheel: started
+
+  Getting requirements to build wheel: finished with status 'done'
+
+  Preparing metadata (pyproject.toml): started
+
+  Preparing metadata (pyproject.toml): finished with status 'done'
+
+Requirement already satisfied: colorama in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from onnxslim&gt;=0.1.76-&gt;nvidia-modelopt[onnx]&gt;=0.44) (0.4.6)
+
+Requirement already satisfied: annotated-types&gt;=0.6.0 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from pydantic&gt;=2.0-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (0.7.0)
+
+Requirement already satisfied: pydantic-core==2.46.4 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from pydantic&gt;=2.0-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (2.46.4)
+
+Requirement already satisfied: typing-inspection&gt;=0.4.2 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from pydantic&gt;=2.0-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (0.4.2)
+
+Requirement already satisfied: mpmath&lt;1.4,&gt;=1.1.0 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from sympy-&gt;onnxruntime~=1.24.2-&gt;nvidia-modelopt[onnx]&gt;=0.44) (1.3.0)
+
+Requirement already satisfied: filelock in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from torch&gt;=2.8-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (3.29.5)
+
+Requirement already satisfied: networkx&gt;=2.5.1 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from torch&gt;=2.8-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (3.6.1)
+
+Requirement already satisfied: jinja2 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from torch&gt;=2.8-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (3.1.6)
+
+Requirement already satisfied: fsspec&gt;=0.8.5 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from torch&gt;=2.8-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (2026.6.0)
+
+Requirement already satisfied: cuda-toolkit==13.0.2 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from cuda-toolkit[cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"-&gt;torch&gt;=2.8-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (13.0.2)
+
+Requirement already satisfied: nvidia-cublas&lt;=13.1.1.3,&gt;=13.1.0.3 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from torch&gt;=2.8-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (13.1.1.3)
+
+Requirement already satisfied: cuda-bindings&lt;14,&gt;=13.0.3 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from torch&gt;=2.8-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (13.3.1)
+
+Requirement already satisfied: nvidia-cudnn-cu13==9.20.0.48 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from torch&gt;=2.8-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (9.20.0.48)
+
+Requirement already satisfied: nvidia-cusparselt-cu13==0.8.1 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from torch&gt;=2.8-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (0.8.1)
+
+Requirement already satisfied: nvidia-nccl-cu13==2.29.7 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from torch&gt;=2.8-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (2.29.7)
+
+Requirement already satisfied: nvidia-nvshmem-cu13==3.4.5 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from torch&gt;=2.8-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (3.4.5)
+
+Requirement already satisfied: triton==3.7.1 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from torch&gt;=2.8-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (3.7.1)
+
+Requirement already satisfied: nvidia-cuda-runtime==13.0.96.* in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from cuda-toolkit[cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"-&gt;torch&gt;=2.8-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (13.0.96)
+
+Requirement already satisfied: nvidia-cufft==12.0.0.61.* in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from cuda-toolkit[cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"-&gt;torch&gt;=2.8-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (12.0.0.61)
+
+Requirement already satisfied: nvidia-cufile==1.15.1.6.* in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from cuda-toolkit[cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"-&gt;torch&gt;=2.8-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (1.15.1.6)
+
+Requirement already satisfied: nvidia-cuda-cupti==13.0.85.* in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from cuda-toolkit[cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"-&gt;torch&gt;=2.8-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (13.0.85)
+
+Requirement already satisfied: nvidia-curand==10.4.0.35.* in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from cuda-toolkit[cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"-&gt;torch&gt;=2.8-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (10.4.0.35)
+
+Requirement already satisfied: nvidia-cusolver==12.0.4.66.* in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from cuda-toolkit[cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"-&gt;torch&gt;=2.8-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (12.0.4.66)
+
+Requirement already satisfied: nvidia-cusparse==12.6.3.3.* in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from cuda-toolkit[cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"-&gt;torch&gt;=2.8-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (12.6.3.3)
+
+Requirement already satisfied: nvidia-nvjitlink==13.0.88.* in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from cuda-toolkit[cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"-&gt;torch&gt;=2.8-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (13.0.88)
+
+Requirement already satisfied: nvidia-cuda-nvrtc==13.0.88.* in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from cuda-toolkit[cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"-&gt;torch&gt;=2.8-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (13.0.88)
+
+Requirement already satisfied: nvidia-nvtx==13.0.85.* in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from cuda-toolkit[cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2; platform_system == "Linux"-&gt;torch&gt;=2.8-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (13.0.85)
+
+Requirement already satisfied: cuda-pathfinder&gt;=1.4.2 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from cuda-bindings&lt;14,&gt;=13.0.3-&gt;torch&gt;=2.8-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (1.5.6)
+
+Requirement already satisfied: mako in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from cppimport-&gt;nvidia-modelopt[onnx]&gt;=0.44) (1.3.12)
+
+Collecting pybind11 (from cppimport-&gt;nvidia-modelopt[onnx]&gt;=0.44)
+
+  Downloading pybind11-3.0.4-py3-none-any.whl.metadata (10 kB)
+
+Requirement already satisfied: MarkupSafe&gt;=2.0 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from jinja2-&gt;torch&gt;=2.8-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (3.0.3)
+
+Collecting onnx_ir&lt;2,&gt;=0.1.16 (from onnxscript-&gt;nvidia-modelopt[onnx]&gt;=0.44)
+
+  Downloading onnx_ir-0.2.1-py3-none-any.whl.metadata (3.3 kB)
+
+Collecting markdown-it-py&gt;=2.2.0 (from rich-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44)
+
+  Downloading markdown_it_py-4.2.0-py3-none-any.whl.metadata (7.4 kB)
+
+Requirement already satisfied: pygments&lt;3.0.0,&gt;=2.13.0 in /home/emertxe/Desktop/Emertxe/Shreya/solar-edge-ai/.venv/lib/python3.12/site-packages (from rich-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44) (2.20.0)
+
+Collecting mdurl~=0.1 (from markdown-it-py&gt;=2.2.0-&gt;rich-&gt;nvidia-modelopt&gt;=0.44-&gt;nvidia-modelopt[onnx]&gt;=0.44)
+
+  Downloading mdurl-0.1.2-py3-none-any.whl.metadata (1.6 kB)
+
+Downloading nvidia_modelopt-0.45.0-py3-none-any.whl (1.9 MB)
+
+   <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">0.0/1.9 MB</span> <span class="ansi-red-fg">?</span> eta <span class="ansi-cyan-fg">-:--:--</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━</span> <span class="ansi-green-fg">1.6/1.9 MB</span> <span class="ansi-red-fg">8.5 MB/s</span> eta <span class="ansi-cyan-fg">0:00:01</span>
+
+   <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">1.9/1.9 MB</span> <span class="ansi-red-fg">8.3 MB/s</span>  <span class="ansi-yellow-fg">0:00:00</span>
+
+Downloading pulp-3.3.2-py3-none-any.whl (16.4 MB)
+
+   <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">0.0/16.4 MB</span> <span class="ansi-red-fg">?</span> eta <span class="ansi-cyan-fg">-:--:--</span>
+
+   <span class="ansi-bright-red-fg">━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">1.3/16.4 MB</span> <span class="ansi-red-fg">7.7 MB/s</span> eta <span class="ansi-cyan-fg">0:00:02</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">2.6/16.4 MB</span> <span class="ansi-red-fg">6.2 MB/s</span> eta <span class="ansi-cyan-fg">0:00:03</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">4.5/16.4 MB</span> <span class="ansi-red-fg">7.3 MB/s</span> eta <span class="ansi-cyan-fg">0:00:02</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">6.6/16.4 MB</span> <span class="ansi-red-fg">8.0 MB/s</span> eta <span class="ansi-cyan-fg">0:00:02</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">8.1/16.4 MB</span> <span class="ansi-red-fg">8.0 MB/s</span> eta <span class="ansi-cyan-fg">0:00:02</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">9.7/16.4 MB</span> <span class="ansi-red-fg">8.1 MB/s</span> eta <span class="ansi-cyan-fg">0:00:01</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━</span> <span class="ansi-green-fg">11.3/16.4 MB</span> <span class="ansi-red-fg">7.8 MB/s</span> eta <span class="ansi-cyan-fg">0:00:01</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━</span> <span class="ansi-green-fg">12.3/16.4 MB</span> <span class="ansi-red-fg">7.7 MB/s</span> eta <span class="ansi-cyan-fg">0:00:01</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━</span> <span class="ansi-green-fg">13.1/16.4 MB</span> <span class="ansi-red-fg">7.2 MB/s</span> eta <span class="ansi-cyan-fg">0:00:01</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━</span> <span class="ansi-green-fg">13.9/16.4 MB</span> <span class="ansi-red-fg">6.9 MB/s</span> eta <span class="ansi-cyan-fg">0:00:01</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━</span> <span class="ansi-green-fg">14.4/16.4 MB</span> <span class="ansi-red-fg">6.5 MB/s</span> eta <span class="ansi-cyan-fg">0:00:01</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━</span> <span class="ansi-green-fg">14.7/16.4 MB</span> <span class="ansi-red-fg">6.3 MB/s</span> eta <span class="ansi-cyan-fg">0:00:01</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━</span> <span class="ansi-green-fg">15.2/16.4 MB</span> <span class="ansi-red-fg">5.7 MB/s</span> eta <span class="ansi-cyan-fg">0:00:01</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━</span> <span class="ansi-green-fg">15.7/16.4 MB</span> <span class="ansi-red-fg">5.5 MB/s</span> eta <span class="ansi-cyan-fg">0:00:01</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span> <span class="ansi-green-fg">16.0/16.4 MB</span> <span class="ansi-red-fg">5.3 MB/s</span> eta <span class="ansi-cyan-fg">0:00:01</span>
+
+   <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">16.4/16.4 MB</span> <span class="ansi-red-fg">5.1 MB/s</span>  <span class="ansi-yellow-fg">0:00:03</span>
+
+Downloading onnx-1.21.0-cp312-abi3-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl (17.5 MB)
+
+   <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">0.0/17.5 MB</span> <span class="ansi-red-fg">?</span> eta <span class="ansi-cyan-fg">-:--:--</span>
+
+   <span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">0.3/17.5 MB</span> <span class="ansi-red-fg">?</span> eta <span class="ansi-cyan-fg">-:--:--</span>
+
+   <span class="ansi-bright-red-fg">━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">0.8/17.5 MB</span> <span class="ansi-red-fg">1.9 MB/s</span> eta <span class="ansi-cyan-fg">0:00:09</span>
+
+   <span class="ansi-bright-red-fg">━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">1.3/17.5 MB</span> <span class="ansi-red-fg">2.2 MB/s</span> eta <span class="ansi-cyan-fg">0:00:08</span>
+
+   <span class="ansi-bright-red-fg">━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">1.8/17.5 MB</span> <span class="ansi-red-fg">2.3 MB/s</span> eta <span class="ansi-cyan-fg">0:00:07</span>
+
+   <span class="ansi-bright-red-fg">━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">2.4/17.5 MB</span> <span class="ansi-red-fg">2.5 MB/s</span> eta <span class="ansi-cyan-fg">0:00:07</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">3.1/17.5 MB</span> <span class="ansi-red-fg">2.7 MB/s</span> eta <span class="ansi-cyan-fg">0:00:06</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">4.5/17.5 MB</span> <span class="ansi-red-fg">3.3 MB/s</span> eta <span class="ansi-cyan-fg">0:00:05</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">6.3/17.5 MB</span> <span class="ansi-red-fg">4.0 MB/s</span> eta <span class="ansi-cyan-fg">0:00:03</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">7.9/17.5 MB</span> <span class="ansi-red-fg">4.4 MB/s</span> eta <span class="ansi-cyan-fg">0:00:03</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">9.4/17.5 MB</span> <span class="ansi-red-fg">4.8 MB/s</span> eta <span class="ansi-cyan-fg">0:00:02</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">10.7/17.5 MB</span> <span class="ansi-red-fg">5.0 MB/s</span> eta <span class="ansi-cyan-fg">0:00:02</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━</span> <span class="ansi-green-fg">12.3/17.5 MB</span> <span class="ansi-red-fg">5.2 MB/s</span> eta <span class="ansi-cyan-fg">0:00:01</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━</span> <span class="ansi-green-fg">14.2/17.5 MB</span> <span class="ansi-red-fg">5.5 MB/s</span> eta <span class="ansi-cyan-fg">0:00:01</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━</span> <span class="ansi-green-fg">15.7/17.5 MB</span> <span class="ansi-red-fg">5.7 MB/s</span> eta <span class="ansi-cyan-fg">0:00:01</span>
+
+   <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">17.5/17.5 MB</span> <span class="ansi-red-fg">5.9 MB/s</span>  <span class="ansi-yellow-fg">0:00:03</span>
+
+Downloading onnxconverter_common-1.16.0-py2.py3-none-any.whl (89 kB)
+
+Downloading onnxruntime-1.24.4-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl (15.2 MB)
+
+   <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">0.0/15.2 MB</span> <span class="ansi-red-fg">?</span> eta <span class="ansi-cyan-fg">-:--:--</span>
+
+   <span class="ansi-bright-red-fg">━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">1.6/15.2 MB</span> <span class="ansi-red-fg">7.7 MB/s</span> eta <span class="ansi-cyan-fg">0:00:02</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">3.1/15.2 MB</span> <span class="ansi-red-fg">8.0 MB/s</span> eta <span class="ansi-cyan-fg">0:00:02</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">4.5/15.2 MB</span> <span class="ansi-red-fg">7.5 MB/s</span> eta <span class="ansi-cyan-fg">0:00:02</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">5.8/15.2 MB</span> <span class="ansi-red-fg">7.2 MB/s</span> eta <span class="ansi-cyan-fg">0:00:02</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">6.8/15.2 MB</span> <span class="ansi-red-fg">6.8 MB/s</span> eta <span class="ansi-cyan-fg">0:00:02</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">8.4/15.2 MB</span> <span class="ansi-red-fg">7.1 MB/s</span> eta <span class="ansi-cyan-fg">0:00:01</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━</span> <span class="ansi-green-fg">10.0/15.2 MB</span> <span class="ansi-red-fg">7.1 MB/s</span> eta <span class="ansi-cyan-fg">0:00:01</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━</span> <span class="ansi-green-fg">11.5/15.2 MB</span> <span class="ansi-red-fg">7.1 MB/s</span> eta <span class="ansi-cyan-fg">0:00:01</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━</span> <span class="ansi-green-fg">13.1/15.2 MB</span> <span class="ansi-red-fg">7.2 MB/s</span> eta <span class="ansi-cyan-fg">0:00:01</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━</span> <span class="ansi-green-fg">14.7/15.2 MB</span> <span class="ansi-red-fg">7.3 MB/s</span> eta <span class="ansi-cyan-fg">0:00:01</span>
+
+   <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">15.2/15.2 MB</span> <span class="ansi-red-fg">7.4 MB/s</span>  <span class="ansi-yellow-fg">0:00:02</span>
+
+Downloading omegaconf-2.3.1-py3-none-any.whl (79 kB)
+
+Downloading onnx_graphsurgeon-0.6.1-py2.py3-none-any.whl (59 kB)
+
+Downloading polygraphy-0.50.3-py3-none-any.whl (453 kB)
+
+Downloading lief-1.0.0-cp312-abi3-manylinux_2_28_aarch64.whl (3.6 MB)
+
+   <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">0.0/3.6 MB</span> <span class="ansi-red-fg">?</span> eta <span class="ansi-cyan-fg">-:--:--</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">0.8/3.6 MB</span> <span class="ansi-red-fg">5.5 MB/s</span> eta <span class="ansi-cyan-fg">0:00:01</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">1.6/3.6 MB</span> <span class="ansi-red-fg">3.9 MB/s</span> eta <span class="ansi-cyan-fg">0:00:01</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━</span> <span class="ansi-green-fg">2.4/3.6 MB</span> <span class="ansi-red-fg">4.1 MB/s</span> eta <span class="ansi-cyan-fg">0:00:01</span>
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━</span> <span class="ansi-green-fg">3.1/3.6 MB</span> <span class="ansi-red-fg">4.0 MB/s</span> eta <span class="ansi-cyan-fg">0:00:01</span>
+
+   <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">3.6/3.6 MB</span> <span class="ansi-red-fg">4.2 MB/s</span>  <span class="ansi-yellow-fg">0:00:00</span>
+
+Downloading ninja-1.13.0-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl (177 kB)
+
+Downloading onnxscript-0.7.1-py3-none-any.whl (721 kB)
+
+   <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">0.0/722.0 kB</span> <span class="ansi-red-fg">?</span> eta <span class="ansi-cyan-fg">-:--:--</span>
+
+   <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">722.0/722.0 kB</span> <span class="ansi-red-fg">8.0 MB/s</span>  <span class="ansi-yellow-fg">0:00:00</span>
+
+Downloading onnx_ir-0.2.1-py3-none-any.whl (166 kB)
+
+Downloading pybind11-3.0.4-py3-none-any.whl (314 kB)
+
+Downloading regex-2026.7.19-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (796 kB)
+
+   <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">0.0/796.7 kB</span> <span class="ansi-red-fg">?</span> eta <span class="ansi-cyan-fg">-:--:--</span>
+
+   <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">796.7/796.7 kB</span> <span class="ansi-red-fg">8.5 MB/s</span>  <span class="ansi-yellow-fg">0:00:00</span>
+
+Downloading rich-15.0.0-py3-none-any.whl (310 kB)
+
+Downloading markdown_it_py-4.2.0-py3-none-any.whl (91 kB)
+
+Downloading mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+
+Downloading safetensors-0.8.0-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (502 kB)
+
+Downloading tqdm-4.69.1-py3-none-any.whl (675 kB)
+
+   <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">0.0/675.5 kB</span> <span class="ansi-red-fg">?</span> eta <span class="ansi-cyan-fg">-:--:--</span>
+
+   <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">675.5/675.5 kB</span> <span class="ansi-red-fg">2.9 MB/s</span>  <span class="ansi-yellow-fg">0:00:00</span>
+
+Building wheels for collected packages: antlr4-python3-runtime, cppimport
+
+  Building wheel for antlr4-python3-runtime (pyproject.toml): started
+
+  Building wheel for antlr4-python3-runtime (pyproject.toml): finished with status 'done'
+
+  Created wheel for antlr4-python3-runtime: filename=antlr4_python3_runtime-4.9.3-py3-none-any.whl size=144589 sha256=c61813632e1aa1b203a0382290d1fab72bfe5cadaec66f4cbc32cdedfb3565c4
+
+  Stored in directory: /tmp/pip-ephem-wheel-cache-zjbz3wdz/wheels/1f/be/48/13754633f1d08d1fbfc60d5e80ae1e5d7329500477685286cd
+
+  Building wheel for cppimport (pyproject.toml): started
+
+  Building wheel for cppimport (pyproject.toml): finished with status 'done'
+
+  Created wheel for cppimport: filename=cppimport-26.4.17-py3-none-any.whl size=18785 sha256=ad239c7c593a550ac99dbf1442644b4a9dd72e0933e30cce8c48df4b2dde7ab6
+
+  Stored in directory: /tmp/pip-ephem-wheel-cache-zjbz3wdz/wheels/61/04/ef/0e7d3685e15c25df1f461860424fb12c439c0b93007b3e6ae3
+
+Successfully built antlr4-python3-runtime cppimport
+
+Installing collected packages: antlr4-python3-runtime, tqdm, safetensors, regex, pybind11, pulp, polygraphy, omegaconf, ninja, mdurl, lief, onnxruntime, onnx, markdown-it-py, cppimport, rich, onnxconverter-common, onnx_ir, onnx-graphsurgeon, onnxscript, nvidia-modelopt
+
+
+
+   <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg"> 0/21</span> [antlr4-python3-runtime]
+
+   <span class="ansi-bright-red-fg">━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg"> 3/21</span> [regex]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg"> 5/21</span> [pulp]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg"> 5/21</span> [pulp]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg"> 5/21</span> [pulp]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg"> 6/21</span> [polygraphy]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg"> 6/21</span> [polygraphy]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg"> 6/21</span> [polygraphy]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg"> 6/21</span> [polygraphy]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg"> 7/21</span> [omegaconf]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">10/21</span> [lief]
+
+  Attempting uninstall: onnxruntime
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">10/21</span> [lief]
+
+    Found existing installation: onnxruntime 1.27.0
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">10/21</span> [lief]
+
+    Uninstalling onnxruntime-1.27.0:
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">10/21</span> [lief]
+
+      Successfully uninstalled onnxruntime-1.27.0
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">10/21</span> [lief]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">11/21</span> [onnxruntime]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">11/21</span> [onnxruntime]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">11/21</span> [onnxruntime]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">11/21</span> [onnxruntime]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">11/21</span> [onnxruntime]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">11/21</span> [onnxruntime]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">11/21</span> [onnxruntime]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">11/21</span> [onnxruntime]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">11/21</span> [onnxruntime]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">11/21</span> [onnxruntime]
+
+  Attempting uninstall: onnx
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">11/21</span> [onnxruntime]
+
+    Found existing installation: onnx 1.22.0
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">11/21</span> [onnxruntime]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+    Uninstalling onnx-1.22.0:
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+      Successfully uninstalled onnx-1.22.0
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">12/21</span> [onnx]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">13/21</span> [markdown-it-py]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━</span> <span class="ansi-green-fg">15/21</span> [rich]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━</span> <span class="ansi-green-fg">15/21</span> [rich]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-red-fg">╸</span><span class="ansi-bright-black-fg">━━━━━━━━━━━</span> <span class="ansi-green-fg">15/21</span> [rich]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━━━</span> <span class="ansi-green-fg">16/21</span> [onnxconverter-common]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━━━━━</span> <span class="ansi-green-fg">17/21</span> [onnx_ir]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━</span> <span class="ansi-green-fg">19/21</span> [onnxscript]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━</span> <span class="ansi-green-fg">19/21</span> [onnxscript]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━</span> <span class="ansi-green-fg">19/21</span> [onnxscript]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━</span> <span class="ansi-green-fg">19/21</span> [onnxscript]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━━━</span> <span class="ansi-green-fg">19/21</span> [onnxscript]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━</span> <span class="ansi-green-fg">20/21</span> [nvidia-modelopt]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━</span> <span class="ansi-green-fg">20/21</span> [nvidia-modelopt]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━</span> <span class="ansi-green-fg">20/21</span> [nvidia-modelopt]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━</span> <span class="ansi-green-fg">20/21</span> [nvidia-modelopt]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━</span> <span class="ansi-green-fg">20/21</span> [nvidia-modelopt]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━</span> <span class="ansi-green-fg">20/21</span> [nvidia-modelopt]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━</span> <span class="ansi-green-fg">20/21</span> [nvidia-modelopt]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━</span> <span class="ansi-green-fg">20/21</span> [nvidia-modelopt]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━</span> <span class="ansi-green-fg">20/21</span> [nvidia-modelopt]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━</span> <span class="ansi-green-fg">20/21</span> [nvidia-modelopt]
+
+   <span class="ansi-bright-red-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span><span class="ansi-bright-black-fg">╺</span><span class="ansi-bright-black-fg">━</span> <span class="ansi-green-fg">20/21</span> [nvidia-modelopt]
+
+   <span class="ansi-bright-black-fg">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-green-fg">21/21</span> [nvidia-modelopt]
+
+
+
+Successfully installed antlr4-python3-runtime-4.9.3 cppimport-26.4.17 lief-1.0.0 markdown-it-py-4.2.0 mdurl-0.1.2 ninja-1.13.0 nvidia-modelopt-0.45.0 omegaconf-2.3.1 onnx-1.21.0 onnx-graphsurgeon-0.6.1 onnx_ir-0.2.1 onnxconverter-common-1.16.0 onnxruntime-1.24.4 onnxscript-0.7.1 polygraphy-0.50.3 pulp-3.3.2 pybind11-3.0.4 regex-2026.7.19 rich-15.0.0 safetensors-0.8.0 tqdm-4.69.1
+
+
+
+<span class="ansi-red-fg ansi-bold">requirements:</span> AutoUpdate success ✅ 39.1s
+
+WARNING ⚠️ <span class="ansi-red-fg ansi-bold">requirements:</span> <span class="ansi-bold">Restart runtime or rerun command for updates to take effect</span>
+
+
+
+<span class="ansi-blue-fg ansi-bold">TensorRT:</span> converting ONNX to FP16 mixed precision with ModelOpt AutoCast...
+
+2026-07-27 16:04:09,484 - [modelopt][onnx] - WARNING - Shared constants were detected and duplicated accordingly.
+
+2026-07-27 16:04:09,987 - [modelopt][onnx] - INFO - Successfully enabled 1 EPs for ORT: ['CPUExecutionProvider']
+
+2026-07-27 16:04:10,310 - [modelopt][onnx] - INFO - Running ONNX Runtime to obtain reference outputs (this may take a while)...
+
+2026-07-27 16:04:18,063 - [modelopt][onnx] - INFO - Skipping node /model.22/Mul_2: reference IO out of range: min=0.80059814453125, max=1277.395263671875, absmax=1277.395263671875, range=[-512, 512]
+
+2026-07-27 16:04:18,069 - [modelopt][onnx] - INFO - Skipping node /model.22/Concat_3: reference IO out of range: min=0.80059814453125, max=1277.395263671875, absmax=1277.395263671875, range=[-512, 512]
+
+2026-07-27 16:04:18,744 - [modelopt][onnx] - WARNING - Did not find  in value info map! Assuming not castable
+
+2026-07-27 16:04:18,831 - [modelopt][onnx] - WARNING - Some initializers contain values smaller than smallest fp16 value, values will be replaced with 6.0e-08.
+
+2026-07-27 16:04:20,399 - [modelopt][onnx] - INFO - Converted 229/231 nodes (99.13%) to fp16
+
+[07/27/2026-16:04:20] [TRT] [I] ----------------------------------------------------------------
+
+[07/27/2026-16:04:20] [TRT] [I] Input filename:   /home/emertxe/Desktop/Emertxe/Shreya/helmet-detection-violation/best.fp16.onnx
+
+[07/27/2026-16:04:20] [TRT] [I] ONNX IR version:  0.0.8
+
+[07/27/2026-16:04:20] [TRT] [I] Opset version:    18
+
+[07/27/2026-16:04:20] [TRT] [I] Producer name:    pytorch
+
+[07/27/2026-16:04:20] [TRT] [I] Producer version: 2.12.1
+
+[07/27/2026-16:04:20] [TRT] [I] Domain:           
+
+[07/27/2026-16:04:20] [TRT] [I] Model version:    0
+
+[07/27/2026-16:04:20] [TRT] [I] Doc string:       
+
+[07/27/2026-16:04:20] [TRT] [I] ----------------------------------------------------------------
+
+<span class="ansi-blue-fg ansi-bold">TensorRT:</span> input "images" with shape(1, 3, 1280, 1280) DataType.FLOAT
+
+<span class="ansi-blue-fg ansi-bold">TensorRT:</span> output "output0" with shape(1, 9, 33600) DataType.FLOAT
+
+<span class="ansi-blue-fg ansi-bold">TensorRT:</span> building FP16 engine as /home/emertxe/Desktop/Emertxe/Shreya/helmet-detection-violation/best.engine
+
+[07/27/2026-16:04:22] [TRT] [I] [MemUsageChange] Init builder kernel library: CPU -192, GPU +119, now: CPU 2901, GPU 5622 (MiB)
+
+[07/27/2026-16:04:22] [TRT] [I] Local timing cache in use. Profiling results in this builder pass will not be stored.
+
+[07/27/2026-16:04:27] [TRT] [I] Compiler backend is used during engine build.
+
+[07/27/2026-16:08:38] [TRT] [I] Detected 1 inputs and 3 output network tensors.
+
+[07/27/2026-16:08:43] [TRT] [I] Total Host Persistent Memory: 378416 bytes
+
+[07/27/2026-16:08:43] [TRT] [I] Total Device Persistent Memory: 0 bytes
+
+[07/27/2026-16:08:43] [TRT] [I] Max Scratch Memory: 4300800 bytes
+
+[07/27/2026-16:08:43] [TRT] [I] [BlockAssignment] Started assigning block shifts. This will take 145 steps to complete.
+
+[07/27/2026-16:08:43] [TRT] [I] [BlockAssignment] Algorithm ShiftNTopDown took 17.3743ms to assign 9 blocks to 145 nodes requiring 70452736 bytes.
+
+[07/27/2026-16:08:43] [TRT] [I] Total Activation Memory: 70451200 bytes
+
+[07/27/2026-16:08:43] [TRT] [I] Total Weights Memory: 22681984 bytes
+
+[07/27/2026-16:08:43] [TRT] [I] Compiler backend is used during engine execution.
+
+[07/27/2026-16:08:43] [TRT] [I] Engine generation completed in 260.488 seconds.
+
+[07/27/2026-16:08:43] [TRT] [I] [MemUsageStats] Peak memory usage of TRT CPU/GPU memory allocators: CPU 4 MiB, GPU 462 MiB
+
+<span class="ansi-blue-fg ansi-bold">TensorRT:</span> export success ✅ 317.9s, saved as '/home/emertxe/Desktop/Emertxe/Shreya/helmet-detection-violation/best.engine' (23.8 MB)
+
+
+
+Export complete (319.1s)
+
+Results saved to <span class="ansi-bold">/home/emertxe/Desktop/Emertxe/Shreya/helmet-detection-violation/best.engine</span>
+
+Predict:         yolo predict task=detect model=/home/emertxe/Desktop/Emertxe/Shreya/helmet-detection-violation/best.engine imgsz=1280 quantize=16
+
+Validate:        yolo val task=detect model=/home/emertxe/Desktop/Emertxe/Shreya/helmet-detection-violation/best.engine imgsz=1280 data=/workspace/Vedant/yolo_dataset/data.yaml quantize=16 
+
+Visualize:       https://netron.app
+</pre>
+</div>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="30">
+<pre><code>PosixPath('/home/emertxe/Desktop/Emertxe/Shreya/helmet-detection-violation/best.engine')</code></pre>
+</div>
+</div>
+</section>
+<section id="re-exporting-with-fp16" class="level3">
+<h3 class="anchored" data-anchor-id="re-exporting-with-fp16"><strong>Re-exporting with FP16</strong></h3>
+<p>The first export used FP32, keeping the same precision as PyTorch, which explains why it gave no speedup. This time we export with FP16 (half precision), which does less computation per operation.</p>
+<p>The export process automatically converted 229 of 231 model layers to FP16, keeping 2 layers at higher precision where FP16 would have lost too much numeric range, a built-in safety check rather than converting everything blindly.</p>
+<div id="cf0ed81c" class="cell" data-execution_count="31">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> main <span class="im">import</span> run_pipeline, save_outputs</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>start <span class="op">=</span> time.time()</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>manager_fp16, observations_fp16, plate_matches_fp16, sample_frames_fp16 <span class="op">=</span> run_pipeline(</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    model_path<span class="op">=</span><span class="st">"best.engine"</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>elapsed_fp16 <span class="op">=</span> time.time() <span class="op">-</span> start</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Total time (TensorRT FP16): </span><span class="sc">{</span>elapsed_fp16<span class="sc">:.1f}</span><span class="ss"> seconds"</span>)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"FPS (TensorRT FP16): </span><span class="sc">{</span><span class="dv">1500</span> <span class="op">/</span> elapsed_fp16<span class="sc">:.2f}</span><span class="ss">"</span>)</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Comparison so far:"</span>)</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  PyTorch (.pt):        175.8s, </span><span class="sc">{</span><span class="dv">1500</span><span class="op">/</span><span class="fl">175.8</span><span class="sc">:.2f}</span><span class="ss"> FPS"</span>)</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  TensorRT FP32:        173.7s, </span><span class="sc">{</span><span class="dv">1500</span><span class="op">/</span><span class="fl">173.7</span><span class="sc">:.2f}</span><span class="ss"> FPS"</span>)</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  TensorRT FP16:        </span><span class="sc">{</span>elapsed_fp16<span class="sc">:.1f}</span><span class="ss">s, </span><span class="sc">{</span><span class="dv">1500</span><span class="op">/</span>elapsed_fp16<span class="sc">:.2f}</span><span class="ss"> FPS"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>WARNING ⚠️ Unable to automatically guess model task, assuming 'task=detect'. Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify', 'pose', 'obb' or 'semantic'.
+Loading best.engine for TensorRT inference...
+[07/27/2026-16:11:17] [TRT] [I] Loaded engine size: 23 MiB
+[07/27/2026-16:11:17] [TRT] [I] [MemUsageChange] TensorRT-managed allocation in IExecutionContext creation: CPU +0, GPU +67, now: CPU 0, GPU 88 (MiB)
+Processed 1500 frames from: /home/emertxe/Desktop/Emertxe/Shreya/helmet-detection-violation/sample_videos/20211125082353_0060.mp4
+Model: best.engine
+  total_instances: 112
+  confident_helmet_status: 39
+  confirmed_violations: 14
+
+Total time (TensorRT FP16): 118.2 seconds
+FPS (TensorRT FP16): 12.69
+
+Comparison so far:
+  PyTorch (.pt):        175.8s, 8.53 FPS
+  TensorRT FP32:        173.7s, 8.64 FPS
+  TensorRT FP16:        118.2s, 12.69 FPS</code></pre>
+</div>
+</div>
+<div id="581daef2" class="cell" data-execution_count="32">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>matched_fp16, total_fp16 <span class="op">=</span> check_detection_recall(</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    config.VIDEO_PATH, gt_df, <span class="st">"best.engine"</span>, config.TRACKER, config.CLASS_NAMES</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Detection recall comparison (PyTorch baseline vs TensorRT FP16):</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> label <span class="kw">in</span> matched_fp16:</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    recall_pt <span class="op">=</span> matched[label] <span class="op">/</span> total[label]</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    recall_fp16 <span class="op">=</span> matched_fp16[label] <span class="op">/</span> total_fp16[label]</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>label<span class="sc">}</span><span class="ss">:"</span>)</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  PyTorch:      </span><span class="sc">{</span>matched[label]<span class="sc">}</span><span class="ss">/</span><span class="sc">{</span>total[label]<span class="sc">}</span><span class="ss"> = </span><span class="sc">{</span>recall_pt<span class="sc">:.1%}</span><span class="ss">"</span>)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  TensorRT FP16: </span><span class="sc">{</span>matched_fp16[label]<span class="sc">}</span><span class="ss">/</span><span class="sc">{</span>total_fp16[label]<span class="sc">}</span><span class="ss"> = </span><span class="sc">{</span>recall_fp16<span class="sc">:.1%}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>WARNING ⚠️ Unable to automatically guess model task, assuming 'task=detect'. Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify', 'pose', 'obb' or 'semantic'.
+Loading best.engine for TensorRT inference...
+[07/27/2026-16:15:33] [TRT] [I] Loaded engine size: 23 MiB
+[07/27/2026-16:15:34] [TRT] [I] [MemUsageChange] TensorRT-managed allocation in IExecutionContext creation: CPU +0, GPU +67, now: CPU 0, GPU 88 (MiB)
+Detection recall comparison (PyTorch baseline vs TensorRT FP16):
+
+rider:
+  PyTorch:      1048/1552 = 67.5%
+  TensorRT FP16: 1049/1552 = 67.6%
+motorcycle:
+  PyTorch:      894/1749 = 51.1%
+  TensorRT FP16: 902/1749 = 51.6%</code></pre>
+</div>
+</div>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th></th>
+<th>PyTorch</th>
+<th>TensorRT FP16</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Rider detection recall</td>
+<td>67.5%</td>
+<td>67.6%</td>
+</tr>
+<tr class="even">
+<td>Motorcycle detection recall</td>
+<td>51.1%</td>
+<td>51.6%</td>
+</tr>
+</tbody>
+</table>
+<p>Detection recall is essentially unchanged, the tiny differences (+1 rider, +8 motorcycles, both under 1%) are well within normal run-to-run noise, not a real accuracy loss. Combined with the 49% speed improvement, this means <strong>FP16 TensorRT export gives a real speedup on this hardware with no meaningful accuracy cost</strong> for this model.</p>
+<p>This is the clearest evidence in this whole notebook for the value of edge-specific optimization: the same model, the same weights, the same detection quality just compiled for this exact chip runs in roughly two-thirds the time.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/shreyamali17@github\.com\/shreyamali17\/helmet-violation-detection\.git");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

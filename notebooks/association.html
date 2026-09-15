@@ -80,7 +80,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-5d87b17b245f5ff6f5a0de4501ec7b8d.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-445b8638c3d06994fee0907d791121c4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -109,6 +109,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../styles.css">
 </head>
@@ -169,13 +198,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>  
     </ul>
   </li>
-  <li class="nav-item">
-    <a class="nav-link" href="../notebooks/fullpipeline.html"> 
-<span class="menu-text">Full Pipeline</span></a>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-pipeline" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Pipeline</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-pipeline">    
+        <li>
+    <a class="dropdown-item" href="../notebooks/quick_pipeline.html">
+ <span class="dropdown-text">Quick Access</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/full_pipeline.html">
+ <span class="dropdown-text">Complete Pipeline</span></a>
+  </li>  
+    </ul>
+  </li>
   <li class="nav-item">
-    <a class="nav-link" href="../final/main.html"> 
-<span class="menu-text">Main Tutorial</span></a>
+    <a class="nav-link" href="../notebooks/edge_deployment.html"> 
+<span class="menu-text">Deployment</span></a>
   </li>  
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
@@ -202,7 +242,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#setup" id="toc-setup" class="nav-link active" data-scroll-target="#setup"><strong>Setup</strong></a></li>
   <li><a href="#the-hungarian-algorithm" id="toc-the-hungarian-algorithm" class="nav-link" data-scroll-target="#the-hungarian-algorithm"><strong>The Hungarian Algorithm</strong></a></li>
-  <li><a href="#cost-matrices-two-ways" id="toc-cost-matrices-two-ways" class="nav-link" data-scroll-target="#cost-matrices-two-ways"><strong>Cost matrices, two ways</strong></a></li>
+  <li><a href="#the-three-step-pattern" id="toc-the-three-step-pattern" class="nav-link" data-scroll-target="#the-three-step-pattern"><strong>The Three-Step Pattern</strong></a></li>
+  <li><a href="#two-definitions-of-cost" id="toc-two-definitions-of-cost" class="nav-link" data-scroll-target="#two-definitions-of-cost"><strong>Two Definitions of Cost</strong></a></li>
   <li><a href="#function" id="toc-function" class="nav-link" data-scroll-target="#function"><strong>Function</strong></a></li>
   <li><a href="#trying-both-on-a-real-frame" id="toc-trying-both-on-a-real-frame" class="nav-link" data-scroll-target="#trying-both-on-a-real-frame"><strong>Trying both on a real frame</strong></a></li>
   <li><a href="#seeing-it" id="toc-seeing-it" class="nav-link" data-scroll-target="#seeing-it"><strong>Seeing It</strong></a></li>
@@ -333,10 +374,49 @@ optimal total: 7</code></pre>
 </ol>
 <p>Step 3 is the one people skip, and it’s essential. Read on.</p>
 </section>
-<section id="cost-matrices-two-ways" class="level2">
-<h2 class="anchored" data-anchor-id="cost-matrices-two-ways"><strong>Cost matrices, two ways</strong></h2>
-<p>For rider-to-motorcycle, the file contains two definitions of cost. Both produce a matrix of the same shape; they disagree about what “close” means.</p>
-<div id="cell-10" class="cell" data-execution_count="4">
+<section id="the-three-step-pattern" class="level2">
+<h2 class="anchored" data-anchor-id="the-three-step-pattern"><strong>The Three-Step Pattern</strong></h2>
+<p>Every function in this module follows the same three steps:</p>
+<ol type="1">
+<li><strong>Build a cost matrix.</strong> One number per possible pairing, answering the question “how poor would this pairing be?”</li>
+<li><strong>Solve it.</strong> Hand the matrix to <code>linear_sum_assignment</code> to obtain the globally optimal set of pairings.</li>
+<li><strong>Discard pairings that remain too expensive (&gt; threshold).</strong></li>
+</ol>
+<p>In step three, the threshold is applied <strong>after</strong> the assignment, not before. The algorithm is asked for the best arrangement available, and only afterwards is each individual pairing examined to determine whether it is genuinely acceptable. A “best available” match is not the same thing as a “good” match. If only one motorcycle appears in a frame and it is nowhere near the rider, it remains the best option and still requires rejection.</p>
+</section>
+<section id="two-definitions-of-cost" class="level2">
+<h2 class="anchored" data-anchor-id="two-definitions-of-cost"><strong>Two Definitions of Cost</strong></h2>
+<p>For rider-to-motorcycle matching the module contains two definitions. Both produce a matrix of the same shape, but they disagree about what “close” means.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>Cost formula</th>
+<th>Units</th>
+<th>Default threshold (<code>config.py</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>xdist</code></td>
+<td>Horizontal distance between box centres</td>
+<td>Pixels</td>
+<td>300</td>
+</tr>
+<tr class="even">
+<td><code>iou</code></td>
+<td><code>1 - IoU</code> between the two boxes</td>
+<td>0 to 1</td>
+<td>0.9</td>
+</tr>
+</tbody>
+</table>
+<p>We use this formula because minimizing cost helps the system find the best rider-motorcycle pairs. It focuses on two main rules:</p>
+<ul>
+<li><strong>Distance:</strong> The smaller the distance between a rider and a motorcycle on the screen, the better the match. Cost matrix is calculated as: <code>cost[i][j] = |x_center(rider[i]) - x_center(moto[j])|</code></li>
+<li><strong>Overlap (IoU):</strong> A good match means their boxes overlap a lot (high IoU). Since our goal is to <em>minimize</em> the final cost number, we use <span class="math inline">\(1 - \text{IoU}\)</span>. This ensures that more overlap directly results in a lower cost. Cost matrix is calculated as: <code>cost[i][j] = 1 - iou(rider[i], moto[j])</code></li>
+</ul>
+<div id="cell-11" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> geometry <span class="im">import</span> x_center, iou</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -375,7 +455,7 @@ optimal total: 7</code></pre>
 <h2 class="anchored" data-anchor-id="function"><strong>Function</strong></h2>
 <p>Note where the threshold is applied: <strong>after</strong> the assignment, not before.</p>
 <p>The algorithm is asked for the best arrangement available, and only then do we check whether each individual pairing is actually good enough to keep. A “best available” match is not the same thing as a “good” match if there’s only one motorcycle in frame and it’s nowhere near the rider, it’s still the best option, and it still needs rejecting.</p>
-<div id="cell-13" class="cell" data-execution_count="5">
+<div id="cell-14" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.optimize <span class="im">import</span> linear_sum_assignment</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>DEFAULT_MAX_COST <span class="op">=</span> {</span>
@@ -406,7 +486,7 @@ optimal total: 7</code></pre>
 <section id="trying-both-on-a-real-frame" class="level2">
 <h2 class="anchored" data-anchor-id="trying-both-on-a-real-frame"><strong>Trying both on a real frame</strong></h2>
 <p>Let’s find a frame where the two methods disagree.</p>
-<div id="cell-16" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}}" data-outputid="7592377c-97df-494c-d511-2df039bace21" data-execution_count="6">
+<div id="cell-17" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}}" data-outputid="7592377c-97df-494c-d511-2df039bace21" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> ultralytics <span class="im">import</span> YOLO</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> config</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> detection <span class="im">import</span> get_frame_detections</span>
@@ -466,7 +546,7 @@ frame 220: 4 riders, 3 motorcycles
 </div>
 </div>
 <p>Look at the two cost matrices side by side before running the assignment.</p>
-<div id="cell-18" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}}" data-outputid="bef479fa-0b3e-4b83-ccbd-21f410267b62" data-execution_count="7">
+<div id="cell-19" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}}" data-outputid="bef479fa-0b3e-4b83-ccbd-21f410267b62" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>cm_x, rids, mids <span class="op">=</span> build_cost_matrix_xdist(riders, motorcycles)</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>cm_i, _, _ <span class="op">=</span> build_cost_matrix_iou(riders, motorcycles)</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -496,7 +576,7 @@ iou cost (1 - overlap, lower = better):
 </div>
 </div>
 <p>Rows of <code>1.000</code> in the second table mean zero overlap : that rider’s box doesn’t touch that motorcycle’s box at all. The first table has no way to express that; every cell is just some number of pixels.</p>
-<div id="cell-20" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}}" data-outputid="e9a686e8-d8da-419a-d320-ddf77a9555d5" data-execution_count="8">
+<div id="cell-21" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}}" data-outputid="e9a686e8-d8da-419a-d320-ddf77a9555d5" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>xdist_pairs <span class="op">=</span> <span class="bu">dict</span>(associate_riders_to_motorcycles(riders, motorcycles, method<span class="op">=</span><span class="st">"xdist"</span>))</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>iou_pairs   <span class="op">=</span> <span class="bu">dict</span>(associate_riders_to_motorcycles(riders, motorcycles, method<span class="op">=</span><span class="st">"iou"</span>))</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -522,7 +602,7 @@ iou:   2 pairings
 <section id="seeing-it" class="level2">
 <h2 class="anchored" data-anchor-id="seeing-it"><strong>Seeing It</strong></h2>
 <p>Lines drawn between paired objects.</p>
-<div id="cell-22" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;,&quot;height&quot;:237}}" data-outputid="d61a30f7-3a99-4ba8-f01a-a7448f734805" data-execution_count="9">
+<div id="cell-23" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;,&quot;height&quot;:237}}" data-outputid="d61a30f7-3a99-4ba8-f01a-a7448f734805" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> cv2</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -573,7 +653,7 @@ iou:   2 pairings
 <h2 class="anchored" data-anchor-id="matching-heads-to-riders"><strong>Matching Heads to Riders</strong></h2>
 <p>Same machinery, different cost and one design decision worth noticing.</p>
 <p>Helmets and no-helmets arrive as two separate detection classes. This function merges them into a single pool of “heads” before matching, tagging each one with which type it was.</p>
-<div id="cell-25" class="cell" data-execution_count="10">
+<div id="cell-26" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> geometry <span class="im">import</span> top_center, center</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> config <span class="im">import</span> HEAD_RIDER_MAX_COST</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -617,7 +697,7 @@ iou:   2 pairings
 <p>If helmets and no-helmets were matched separately, the same rider could come back paired with a helmet <em>and</em> a no-helmet two contradictory answers, and nothing to arbitrate between them.</p>
 <p>Merging first makes the two classes compete for the same rider through the same assignment. Whichever detection is geometrically closest wins, and each rider gets at most one verdict. The constraint is enforced by the structure rather than by a cleanup step afterwards.</p>
 <p>Note the cost here is plain Euclidean distance from the rider’s <strong>top edge</strong> to the head’s center : the <code>top_center</code> choice from <code>geometry.py</code>, doing real work.</p>
-<div id="cell-27" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}}" data-outputid="fd4c25fb-12a6-4097-c697-ac687dd131ee" data-execution_count="11">
+<div id="cell-28" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}}" data-outputid="fd4c25fb-12a6-4097-c697-ac687dd131ee" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>head_matches <span class="op">=</span> associate_heads_to_riders(</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    riders, det[<span class="st">"helmet"</span>], det[<span class="st">"no_helmet"</span>],</span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    helmet_confs<span class="op">=</span>confs[<span class="st">"helmet"</span>], no_helmet_confs<span class="op">=</span>confs[<span class="st">"no_helmet"</span>],</span>
@@ -638,7 +718,7 @@ iou:   2 pairings
 <section id="matching-plates-to-motorcycles" class="level2">
 <h2 class="anchored" data-anchor-id="matching-plates-to-motorcycles"><strong>Matching plates to motorcycles</strong></h2>
 <p>The third match, and the simplest. Identical structure to heads-to-riders, with <code>bottom_center</code> instead of <code>top_center</code> plates are mounted low on a bike.</p>
-<div id="cell-30" class="cell" data-execution_count="12">
+<div id="cell-31" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> geometry <span class="im">import</span> bottom_center</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> config <span class="im">import</span> PLATE_MOTO_MAX_COST</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -658,7 +738,7 @@ iou:   2 pairings
 <span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {moto_ids[r]: plate_ids[c]</span>
 <span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> r, c <span class="kw">in</span> <span class="bu">zip</span>(row_ind, col_ind) <span class="cf">if</span> cost_matrix[r, c] <span class="op">&lt;=</span> max_cost}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="cell-31" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}}" data-outputid="4b5e8519-efd9-444b-9624-524be436cca9" data-execution_count="13">
+<div id="cell-32" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;colab&quot;,&quot;value&quot;:{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}}" data-outputid="4b5e8519-efd9-444b-9624-524be436cca9" data-execution_count="13">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>plate_matches <span class="op">=</span> associate_plates_to_motorcycles(motorcycles, det[<span class="st">"license_plate"</span>])</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="bu">len</span>(det[<span class="st">'license_plate'</span>])<span class="sc">}</span><span class="ss"> plates detected, </span><span class="sc">{</span><span class="bu">len</span>(plate_matches)<span class="sc">}</span><span class="ss"> matched to a motorcycle"</span>)</span>
@@ -762,7 +842,7 @@ iou:   2 pairings
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/shreyamali17\.github\.io\/helmet-violation-detection\/");
+        var filterRegex = new RegExp("https:\/\/shreyamali17@github\.com\/shreyamali17\/helmet-violation-detection\.git");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }

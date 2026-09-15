@@ -169,9 +169,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>  
     </ul>
   </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-pipeline" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Pipeline</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-pipeline">    
+        <li>
+    <a class="dropdown-item" href="../notebooks/quick_pipeline.html">
+ <span class="dropdown-text">Quick Access</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../notebooks/full_pipeline.html">
+ <span class="dropdown-text">Complete Pipeline</span></a>
+  </li>  
+    </ul>
+  </li>
   <li class="nav-item">
-    <a class="nav-link active" href="../notebooks/fullpipeline.html" aria-current="page"> 
-<span class="menu-text">Full Pipeline</span></a>
+    <a class="nav-link" href="../notebooks/edge_deployment.html"> 
+<span class="menu-text">Deployment</span></a>
   </li>  
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
@@ -447,21 +462,21 @@ Model: /content/helmet-violation-detection/project/models/best.pt
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="fullpipeline_files/figure-html/cell-8-output-1.png" class="img-fluid figure-img"></p>
+<p><img src="quick_pipeline_files/figure-html/cell-8-output-1.png" class="img-fluid figure-img"></p>
 </figure>
 </div>
 </div>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="fullpipeline_files/figure-html/cell-8-output-2.png" class="img-fluid figure-img"></p>
+<p><img src="quick_pipeline_files/figure-html/cell-8-output-2.png" class="img-fluid figure-img"></p>
 </figure>
 </div>
 </div>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="fullpipeline_files/figure-html/cell-8-output-3.png" class="img-fluid figure-img"></p>
+<p><img src="quick_pipeline_files/figure-html/cell-8-output-3.png" class="img-fluid figure-img"></p>
 </figure>
 </div>
 </div>
@@ -544,7 +559,7 @@ Model: /content/helmet-violation-detection/project/models/best.pt
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp('/' + window.location.host + '/');
+        var filterRegex = new RegExp("https:\/\/shreyamali17@github\.com\/shreyamali17\/helmet-violation-detection\.git");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }

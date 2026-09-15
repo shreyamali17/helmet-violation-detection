@@ -1,1 +1,1 @@
-Sitemap: https://shreyamali17.github.io/helmet-violation-detection/sitemap.xml
+Sitemap: https://shreyamali17@github.com/shreyamali17/helmet-violation-detection.git/sitemap.xml

@@ -1,71 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://shreyamali17.github.io/helmet-violation-detection/reference.html</loc>
-    <lastmod>2026-09-14T05:20:06.624Z</lastmod>
+    <loc>https://shreyamali17@github.com/shreyamali17/helmet-violation-detection.git/pipeline.html</loc>
+    <lastmod>2026-09-13T14:19:02.158Z</lastmod>
   </url>
   <url>
-    <loc>https://shreyamali17.github.io/helmet-violation-detection/notebooks/visualization.html</loc>
-    <lastmod>2026-09-14T05:20:03.302Z</lastmod>
+    <loc>https://shreyamali17@github.com/shreyamali17/helmet-violation-detection.git/notebooks/geometry.html</loc>
+    <lastmod>2026-09-13T20:57:47.657Z</lastmod>
   </url>
   <url>
-    <loc>https://shreyamali17.github.io/helmet-violation-detection/notebooks/rm_instance.html</loc>
-    <lastmod>2026-09-14T05:20:03.262Z</lastmod>
+    <loc>https://shreyamali17@github.com/shreyamali17/helmet-violation-detection.git/notebooks/config.html</loc>
+    <lastmod>2026-09-13T20:25:05.434Z</lastmod>
   </url>
   <url>
-    <loc>https://shreyamali17.github.io/helmet-violation-detection/notebooks/fullpipeline.html</loc>
-    <lastmod>2026-09-14T21:10:58.497Z</lastmod>
+    <loc>https://shreyamali17@github.com/shreyamali17/helmet-violation-detection.git/notebooks/quick_pipeline.html</loc>
+    <lastmod>2026-09-15T13:06:42.106Z</lastmod>
   </url>
   <url>
-    <loc>https://shreyamali17.github.io/helmet-violation-detection/notebooks/config.html</loc>
-    <lastmod>2026-09-14T05:20:03.188Z</lastmod>
+    <loc>https://shreyamali17@github.com/shreyamali17/helmet-violation-detection.git/notebooks/visualization.html</loc>
+    <lastmod>2026-09-13T21:51:21.824Z</lastmod>
   </url>
   <url>
-    <loc>https://shreyamali17.github.io/helmet-violation-detection/index.html</loc>
-    <lastmod>2026-09-15T05:17:00.332Z</lastmod>
+    <loc>https://shreyamali17@github.com/shreyamali17/helmet-violation-detection.git/notebooks/detection.html</loc>
+    <lastmod>2026-09-13T20:43:56.964Z</lastmod>
   </url>
   <url>
-    <loc>https://shreyamali17.github.io/helmet-violation-detection/final/main.html</loc>
-    <lastmod>2026-09-14T21:08:02.312Z</lastmod>
+    <loc>https://shreyamali17@github.com/shreyamali17/helmet-violation-detection.git/about.html</loc>
+    <lastmod>2026-09-13T14:07:45.816Z</lastmod>
   </url>
   <url>
-    <loc>https://shreyamali17.github.io/helmet-violation-detection/edge/jetson.html</loc>
-    <lastmod>2026-09-14T05:20:03.082Z</lastmod>
+    <loc>https://shreyamali17@github.com/shreyamali17/helmet-violation-detection.git/edge/optimization.html</loc>
+    <lastmod>2026-09-13T14:19:02.158Z</lastmod>
   </url>
   <url>
-    <loc>https://shreyamali17.github.io/helmet-violation-detection/about.html</loc>
-    <lastmod>2026-09-14T05:20:03.082Z</lastmod>
+    <loc>https://shreyamali17@github.com/shreyamali17/helmet-violation-detection.git/reference.html</loc>
+    <lastmod>2026-09-13T14:19:02.157Z</lastmod>
   </url>
   <url>
-    <loc>https://shreyamali17.github.io/helmet-violation-detection/demo.html</loc>
-    <lastmod>2026-09-14T05:20:03.082Z</lastmod>
+    <loc>https://shreyamali17@github.com/shreyamali17/helmet-violation-detection.git/demo.html</loc>
+    <lastmod>2026-09-13T19:14:29.793Z</lastmod>
   </url>
   <url>
-    <loc>https://shreyamali17.github.io/helmet-violation-detection/edge/optimization.html</loc>
-    <lastmod>2026-09-14T05:20:03.083Z</lastmod>
+    <loc>https://shreyamali17@github.com/shreyamali17/helmet-violation-detection.git/index.html</loc>
+    <lastmod>2026-09-15T13:06:42.023Z</lastmod>
   </url>
   <url>
-    <loc>https://shreyamali17.github.io/helmet-violation-detection/final/main_2.html</loc>
-    <lastmod>2026-09-14T18:34:12.724Z</lastmod>
+    <loc>https://shreyamali17@github.com/shreyamali17/helmet-violation-detection.git/edge/jetson.html</loc>
+    <lastmod>2026-09-13T14:19:02.158Z</lastmod>
   </url>
   <url>
-    <loc>https://shreyamali17.github.io/helmet-violation-detection/notebooks/association.html</loc>
-    <lastmod>2026-09-14T05:20:03.187Z</lastmod>
+    <loc>https://shreyamali17@github.com/shreyamali17/helmet-violation-detection.git/final/main.html</loc>
+    <lastmod>2026-09-15T06:47:15.058Z</lastmod>
   </url>
   <url>
-    <loc>https://shreyamali17.github.io/helmet-violation-detection/notebooks/detection.html</loc>
-    <lastmod>2026-09-14T05:20:03.211Z</lastmod>
+    <loc>https://shreyamali17@github.com/shreyamali17/helmet-violation-detection.git/notebooks/rm_instance.html</loc>
+    <lastmod>2026-09-13T21:34:48.782Z</lastmod>
   </url>
   <url>
-    <loc>https://shreyamali17.github.io/helmet-violation-detection/notebooks/geometry.html</loc>
-    <lastmod>2026-09-14T05:20:03.261Z</lastmod>
+    <loc>https://shreyamali17@github.com/shreyamali17/helmet-violation-detection.git/notebooks/full_pipeline.html</loc>
+    <lastmod>2026-09-15T13:06:42.092Z</lastmod>
   </url>
   <url>
-    <loc>https://shreyamali17.github.io/helmet-violation-detection/notebooks/temporal.html</loc>
-    <lastmod>2026-09-14T05:20:03.262Z</lastmod>
+    <loc>https://shreyamali17@github.com/shreyamali17/helmet-violation-detection.git/notebooks/temporal.html</loc>
+    <lastmod>2026-09-13T21:41:25.729Z</lastmod>
   </url>
   <url>
-    <loc>https://shreyamali17.github.io/helmet-violation-detection/pipeline.html</loc>
-    <lastmod>2026-09-14T05:20:03.303Z</lastmod>
+    <loc>https://shreyamali17@github.com/shreyamali17/helmet-violation-detection.git/notebooks/association.html</loc>
+    <lastmod>2026-09-15T13:06:42.030Z</lastmod>
+  </url>
+  <url>
+    <loc>https://shreyamali17@github.com/shreyamali17/helmet-violation-detection.git/notebooks/edge_deployment.html</loc>
+    <lastmod>2026-09-15T07:02:03.891Z</lastmod>
   </url>
 </urlset>
