@@ -49,11 +49,33 @@ belongs to which motorcycle. Finally, a temporal decision layer collects
 observations over time and only calls a violation once the evidence is
 consistent enough to hold up.
 
+## **The Eight Modules**
+
+| Order | Module | Responsibility |
+|---|---|---|
+| 1 | `config.py` | Holds every path, class name and threshold in one place |
+| 2 | `detection.py` | Reshapes raw model output into per-class lookup tables |
+| 3 | `geometry.py` | Reduces bounding boxes to comparable points and overlap scores |
+| 4 | `association.py` | Matches riders to motorcycles, heads to riders, plates to motorcycles |
+| 5 | `rm_instance.py` | Stores what the system learns about each rider over time |
+| 6 | `temporal.py` | Combines many frames into a single verdict |
+| 7 | `visualization.py` | Renders pipeline state as reviewable images |
+| 8 | `main.py` | Runs every stage in order across a full video |
+
 Then we make it fast enough to run on a Jetson Orin Nano, which is where the
 interesting trade-offs start.
+
+## **The Central Difficulty**
+
+A detection model reports **objects**. It does not report **relationships**.
+The model can state that a helmet is present and that a rider is present, but
+it cannot state that the helmet belongs to that rider. Every relationship in
+this system is inferred from geometry, and then stabilised across time. That
+inference is the substance of the work, and the modules below address it in
+sequence.
 
 ## Demo
 
 Before building anything, let's have a look at how the finished system would look like.
 
-{{< video project/sample_videos/sample.mp4 >}}
+{{< video videos/demo.mp4 >}}

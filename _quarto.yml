@@ -23,16 +23,14 @@ website:
             text: Violation Logic
           - href: notebooks/visualization.ipynb
             text: Visualization
-      - href: notebooks/fullpipeline.ipynb
-        text: Full Pipeline
-      - text: Deployment
+      - text: Pipeline
         menu:
-          - href: notebooks/optimization.ipynb
-            text: Optimization
-          - href: notebooks/jetson_nano.ipynb
-            text: Jetson Nano
-      - href: final/main.ipynb
-        text: Main Tutorial
+          - href: notebooks/quick_pipeline.ipynb
+            text: Quick Access
+          - href: notebooks/full_pipeline.ipynb
+            text: Complete Pipeline
+      - href: notebooks/edge_deployment.ipynb
+        text: Deployment
     right:
       - icon: github
         href: https://github.com/shreyamali17/helmet-violation-detection
