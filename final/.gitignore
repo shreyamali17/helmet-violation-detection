@@ -1,2 +1,6 @@
 main_2.ipynb
 __pycache__
+anpr.py
+*.mp4
+*.xml
+pairs.json

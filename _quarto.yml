@@ -27,7 +27,7 @@ website:
         menu:
           - href: notebooks/quick_pipeline.ipynb
             text: Quick Access
-          - href: notebooks/full_pipeline.ipynb
+          - href: final/main.ipynb
             text: Complete Pipeline
       - href: notebooks/edge_deployment.ipynb
         text: Deployment
