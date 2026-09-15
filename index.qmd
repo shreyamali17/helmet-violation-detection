@@ -56,4 +56,4 @@ interesting trade-offs start.
 
 Before building anything, let's have a look at how the finished system would look like.
 
-{{< video videos/demo.mp4 >}}
+{{< video project/sample_videos/sample.mp4 >}}

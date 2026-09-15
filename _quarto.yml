@@ -31,6 +31,8 @@ website:
             text: Optimization
           - href: notebooks/jetson_nano.ipynb
             text: Jetson Nano
+      - href: final/main.ipynb
+        text: Main Tutorial
     right:
       - icon: github
         href: https://github.com/shreyamali17/helmet-violation-detection
